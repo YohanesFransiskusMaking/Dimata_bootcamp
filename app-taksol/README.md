@@ -1,93 +1,193 @@
 # Taksol Database (taksol_db)
 
 ## Deskripsi
-`taksol_db` adalah database untuk sistem pemesanan transportasi (ride-hailing).
-Database ini mengelola data user, role, kendaraan, jenis kendaraan, pesanan (orders),
-dan status pesanan dengan struktur relasi yang telah dinormalisasi.
 
-Database dirancang menggunakan **MySQL** dan siap digunakan untuk pengembangan
-aplikasi backend (REST API, mobile app, dan layanan terdistribusi lainnya).
+`taksol_db` adalah database untuk sistem pemesanan transportasi
+yang dirancang menyerupai alur aplikasi seperti Gojek / Grab.
+
+Database ini mendukung:
+
+- Multi-role user (ADMIN, DRIVER, CUSTOMER + sub-role)
+- Pemesanan transportasi oleh customer
+- Driver menerima / mengerjakan order
+- Perhitungan tarif dan detail perjalanan
+- Pencatatan pembayaran dan status order
 
 ---
 
 ## Teknologi
-- Database: MySQL
-- Tools: DBeaver, draw.io, Git, GitHub
+
+- Database: **MySQL**
+- Database Client: **DBeaver**
+- Version Control: **Git & GitHub**
 
 ---
 
-## Struktur Database
+---
 
-### Diagram Awal (Perancangan)
-Diagram berikut merupakan rancangan awal struktur database yang dibuat menggunakan **draw.io**
-sebagai acuan sebelum implementasi ke dalam MySQL.
+## Konsep Desain Database
 
-![Diagram Awal Database](images/taksol.drawio.png)
+### 1. Multi Role & Hierarki Role
+
+- User dapat memiliki lebih dari satu role (many-to-many)
+- Role customer memiliki hierarki:
+  - CUSTOMER_BASIC
+  - CUSTOMER_SILVER
+  - CUSTOMER_GOLD
+
+Relasi ini diatur melalui:
+
+- `roles`
+- `user_roles`
 
 ---
 
-### Penjelasan Tabel
+### 2. Pemesanan (Order) Fleksibel
 
-#### 1. Tabel `app_users`
-Menyimpan data pengguna aplikasi, baik sebagai pemesan, driver, maupun admin.
+- Tabel `orders` hanya menyimpan **informasi umum order**
+- Relasi user ke order disimpan di tabel `user_orders`
+- Satu order bisa memiliki:
+  - 1 CUSTOMER
+  - 1 DRIVER (setelah driver menerima order)
 
-#### 2. Tabel `roles`
-Menyimpan jenis peran (role) yang dimiliki oleh user, seperti Admin, Driver, dan Customer.
+Pendekatan ini membuat sistem:
 
-#### 3. Tabel `user_roles`
-Tabel penghubung untuk relasi **many-to-many** antara `app_users` dan `roles`.
-
-#### 4. Tabel `jenis_kendaraan`
-Menyimpan jenis kendaraan beserta informasi tarif dan kapasitas.
-
-#### 5. Tabel `kendaraan`
-Menyimpan data kendaraan yang digunakan oleh driver dan terhubung ke jenis kendaraan tertentu.
-
-#### 6. Tabel `status_order`
-Menyimpan status dari pesanan, seperti pending, diproses, selesai, atau dibatalkan.
-
-#### 7. Tabel `orders`
-Menyimpan data pemesanan transportasi, termasuk pemesan, driver (opsional), lokasi, dan status pesanan.
+- Lebih fleksibel
+- Mudah dikembangkan (misalnya multi-driver, admin monitoring)
 
 ---
 
-## Relasi Antar Tabel
+### 3. Detail Teknis Order Terpisah
 
-- **app_users ↔ roles**  
-  Relasi many-to-many melalui tabel `user_roles`.
+- Tabel `order_details` menyimpan:
+  - Jenis kendaraan
+  - Jarak tempuh
+  - Tarif per km
+  - Subtotal
+  - Kendaraan driver (setelah order diterima)
 
-- **jenis_kendaraan → kendaraan**  
-  Relasi one-to-many (satu jenis kendaraan dapat digunakan oleh banyak kendaraan).
+---
 
-- **app_users → kendaraan**  
-  Relasi one-to-many (satu driver dapat memiliki kendaraan).
+### 4. Pembayaran Terpisah
 
-- **status_order → orders**  
-  Relasi one-to-many.
+- Tabel `payments` mencatat:
+  - Metode pembayaran
+  - Status pembayaran
+  - Waktu pembayaran
 
-- **app_users → orders**
-  - `pemesan_id` → NOT NULL (order wajib memiliki pemesan)
-  - `driver_id` → NULLABLE (driver dapat ditentukan setelah order dibuat)
+---
+
+## Penjelasan Tabel Utama
+
+### 1. `app_users`
+
+Menyimpan semua pengguna sistem:
+
+- Customer
+- Driver
+- Admin
+
+---
+
+### 2. `roles`
+
+Menyimpan role dan hierarki role (parent-child).
+
+---
+
+### 3. `user_roles`
+
+Tabel penghubung many-to-many antara user dan role.
+
+---
+
+### 4. `jenis_kendaraan`
+
+Menyimpan tipe kendaraan (Mobil, Motor, dll) beserta tarif dan kapasitas.
+
+---
+
+### 5. `kendaraan`
+
+Menyimpan kendaraan milik driver.
+
+- Satu driver hanya memiliki satu kendaraan.
+
+---
+
+### 6. `orders`
+
+Menyimpan data umum pemesanan:
+
+- Lokasi jemput & tujuan
+- Status order (PENDING, ACCEPTED, COMPLETED, CANCELLED)
+- Status pembayaran
+
+---
+
+### 7. `user_orders`
+
+Menghubungkan user dengan order berdasarkan peran:
+
+- CUSTOMER
+- DRIVER
+
+---
+
+### 8. `order_details`
+
+Menyimpan detail teknis perjalanan dan tarif.
+
+---
+
+### 9. `payments`
+
+Menyimpan riwayat pembayaran order.
+
+---
+
+## Alur Bisnis (Simulasi di DML)
+
+Contoh alur yang disimulasikan dalam `dml_taksol_db.sql`:
+
+1. Admin membuat role
+2. User mendaftar (Andi, Budi, Admin)
+3. Assign role ke user
+4. Driver mendaftarkan kendaraan
+5. Customer membuat order
+6. Driver melihat order PENDING
+7. Driver menerima order
+8. Customer melakukan pembayaran
+9. Order selesai (COMPLETED)
 
 ---
 
 ## Query Database
-Seluruh query pembuatan tabel dan relasi dapat diakses pada file berikut:
 
- **SQL Schema**  
-[sql/taksol_db.sql](sql/taksol_db.sql)
+### DDL (Struktur Database)
+
+📄 `sql/taksol_db.sql`  
+Berisi:
+
+- CREATE DATABASE
+- CREATE TABLE
+- PRIMARY KEY & FOREIGN KEY
+
+### DML (Simulasi Data & Alur)
+
+📄 `sql/dml_taksol_db.sql`  
+Berisi:
+
+- INSERT data awal
+- UPDATE status order
+- SELECT untuk customer & driver
+- DELETE simulasi pembatalan order
 
 ---
 
-## Entity Relationship Diagram (ERD)
-Diagram ERD berikut dihasilkan menggunakan fitur  
-**View Diagram (Reverse Engineering)** di DBeaver berdasarkan database yang telah diimplementasikan.
-
-![ERD Database](images/taksol_db.png)
-
 ---
-
 
 ## Author
-Nama: Yohanes Fransiskus Making  
-Program: Dimata Bootcamp
+
+Nama: **Yohanes Fransiskus Making**  
+Program: **Dimata Bootcamp**
