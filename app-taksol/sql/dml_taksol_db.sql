@@ -1,236 +1,221 @@
--- Tambah role root
-INSERT INTO roles(role, parent_id) VALUES
-('ADMIN', NULL),
-('DRIVER', NULL),
-('CUSTOMER_BASIC', NULL);
+-- Matikan sementara pengecekan foreign key
+SET FOREIGN_KEY_CHECKS = 0;
 
-select * from roles;
+TRUNCATE TABLE wallet_transactions;
+TRUNCATE TABLE user_wallet;
+TRUNCATE TABLE order_status_history;
+TRUNCATE TABLE reviews;
+TRUNCATE TABLE payments;
+TRUNCATE TABLE order_details;
+TRUNCATE TABLE user_orders;
+TRUNCATE TABLE orders;
+TRUNCATE TABLE kendaraan;
+TRUNCATE TABLE jenis_kendaraan;
+TRUNCATE TABLE user_roles;
+TRUNCATE TABLE roles;
+TRUNCATE TABLE user_verification;
+TRUNCATE TABLE app_config;
+TRUNCATE TABLE app_users;
 
--- Ambil id CUSTOMER_BASIC
-SET @customer_basic_id = (SELECT id FROM roles WHERE role='CUSTOMER_BASIC');
-
-select @customer_basic_id;
-
-
--- Tambah sub-role loyalty
-INSERT INTO roles(role, parent_id) VALUES
-('CUSTOMER_SILVER', @customer_basic_id),
-('CUSTOMER_GOLD', @customer_basic_id);
-
--- Tambah Users
-INSERT INTO app_users(nama, email, no_hp) VALUES
-('Andi', 'andi@email.com', '08123456789'),
-('Budi', 'budi@email.com', '08234567890'),
-('Admin1', 'admin@email.com', '08987654321');
-
-select * from app_users;
-
--- Assign Roles
--- Andi = CUSTOMER_BASIC
-INSERT INTO user_roles(user_id, role_id)
-VALUES ((SELECT id FROM app_users WHERE nama='Andi'), 
-        (SELECT id FROM roles WHERE role='CUSTOMER_BASIC'));
-
--- Budi = DRIVER
-INSERT INTO user_roles(user_id, role_id)
-VALUES ((SELECT id FROM app_users WHERE nama='Budi'), 
-        (SELECT id FROM roles WHERE role='DRIVER'));
-
--- Admin1 = ADMIN
-INSERT INTO user_roles(user_id, role_id)
-VALUES ((SELECT id FROM app_users WHERE nama='Admin1'),
-        (SELECT id FROM roles WHERE role='ADMIN'));
-
-
-select u.nama, r.role from app_users u
-join user_roles ur on u.id = ur.user_id 
-join roles r on r.id = ur.role_id;
-
-
-#driver budi mendaftarkan kendaraannya
--- Tambah jenis kendaraan
-INSERT INTO jenis_kendaraan(nama_jenis, kapasitas, tarif_per_km, deskripsi)
-VALUES ('Mobil', 4, 5000.00, 'Mobil untuk 4 penumpang');
-
-select * from jenis_kendaraan;
-
--- Kendaraan milik Budi
-INSERT INTO kendaraan(plat_nomor, jenis_kendaraan_id, driver_id)
-VALUES ('DK1234AB',
-        (SELECT id FROM jenis_kendaraan WHERE nama_jenis='Mobil'),
-        (SELECT id FROM app_users WHERE nama='Budi'));
-
-select * from kendaraan;
-
-
--- Customer membuat order, andi mau berangkat dari dps ke jimbaran
-
--- Buat order umum
-INSERT INTO orders(lokasi_jemput, lokasi_tujuan)
-VALUES ('Denpasar', 'Kuta');
-
-select * from orders;
-
--- Ambil id order terakhir
-SET @order_id = LAST_INSERT_ID();
-
-select @order_id;
-
--- Hubungkan user dengan order: Andi sebagai CUSTOMER
-INSERT INTO user_orders(user_id, order_id, role_in_order)
-VALUES ((SELECT id FROM app_users WHERE nama='Andi'), @order_id, 'CUSTOMER');
-
-select * from user_orders;
-
--- Detail order: pilih jenis kendaraan dan jarak
-INSERT INTO order_details(order_id, jenis_kendaraan_id, jarak_km, tarif_per_km, subtotal)
-VALUES (@order_id,
-        (SELECT id FROM jenis_kendaraan WHERE nama_jenis='Mobil'),
-        10, 5000.00, 50000.00);
-
-select * from order_details;
-
--- Update harga total di orders
-UPDATE orders SET harga_total = 50000.00 WHERE id = @order_id;
-
--- update dari 0 ke 500000
-select * from orders; 
-
-
--- Budi sebagai driver melihat orderan dan menerima order tersebut
-
--- Hubungkan driver dengan order
-INSERT INTO user_orders(user_id, order_id, role_in_order)
-VALUES ((SELECT id FROM app_users WHERE nama='Budi'), @order_id, 'DRIVER');
-
--- order id sama dan dua role berbeda
-select * from user_orders;
-
--- Update status order dari pending ke accepted
-UPDATE orders SET status='ACCEPTED' WHERE id=@order_id;
-
-
--- Pilih kendaraan driver di detail-> sebelumnya kendaraan id masih null, ke kendaraan milik budi
-UPDATE order_details
-SET kendaraan_id = (SELECT id FROM kendaraan WHERE driver_id=(SELECT id FROM app_users WHERE nama='Budi'))
-WHERE order_id=@order_id;
-
-select* from order_details;
-
--- Andi membayar order menggunakan cash. Status pembayaran berubah menjadi PAID, dan riwayat dicatat
--- Catat pembayaran
-INSERT INTO payments(order_id, jumlah, metode, status)
-VALUES (@order_id, 50000.00, 'CASH', 'PAID');
+-- Aktifkan kembali foreign key check
+SET FOREIGN_KEY_CHECKS = 1;
 
 
 
+
+
+-- Budi dan Dina mendaftar
+INSERT INTO app_users (nama, email, no_hp, password_hash)
+VALUES 
+('Budi', 'budi@example.com', '081234567890', 'hash_password_123'),
+('Dina Customer', 'dina@example.com', '089876543210', 'hash_password_456');
+
+-- Cek hasil registrasi
+SELECT * FROM app_users;
+
+
+-- Buat role DRIVER dan CUSTOMER
+INSERT INTO roles (role) VALUES ('DRIVER'), ('CUSTOMER');
+
+-- Assign role ke user
+INSERT INTO user_roles (user_id, role_id)
+VALUES 
+((SELECT id FROM app_users WHERE nama='Budi'),
+ (SELECT id FROM roles WHERE role='DRIVER')),
+((SELECT id FROM app_users WHERE nama='Dina Customer'),
+ (SELECT id FROM roles WHERE role='CUSTOMER'));
+
+-- Cek hasil role assignment
+SELECT au.nama, r.role
+FROM app_users au
+JOIN user_roles ur ON au.id = ur.user_id
+JOIN roles r ON ur.role_id = r.id;
+
+
+-- Budi mengupload KTP, status PENDING
+INSERT INTO user_verification (user_id, status, document_type, document_path)
+VALUES ((SELECT id FROM app_users WHERE nama='Budi'), 'PENDING', 'KTP', '/docs/budi_ktp.jpg');
+
+-- Cek status verifikasi
+SELECT au.nama, uv.status, uv.document_type, uv.document_path
+FROM user_verification uv
+JOIN app_users au ON uv.user_id = au.id;
+
+
+-- Buat jenis kendaraan
+INSERT INTO jenis_kendaraan (nama_jenis, kapasitas, tarif_per_km, deskripsi)
+VALUES 
+('Motor', 1, 2.5, 'Motor untuk 1 penumpang'),
+('Mobil', 4, 5.0, 'Mobil untuk 4 penumpang');
+
+-- Driver Budi menambahkan motor
+INSERT INTO kendaraan (plat_nomor, jenis_kendaraan_id, driver_id, status)
+VALUES ('DK1234XY', 
+        (SELECT id FROM jenis_kendaraan WHERE nama_jenis='Motor'),
+        (SELECT id FROM app_users WHERE nama='Budi'),
+        'ACTIVE');
+
+-- Cek kendaraan driver
+SELECT k.plat_nomor, jk.nama_jenis, k.status, au.nama AS driver
+FROM kendaraan k
+JOIN jenis_kendaraan jk ON k.jenis_kendaraan_id = jk.id
+JOIN app_users au ON k.driver_id = au.id;
+
+
+-- Dina buat order
+INSERT INTO orders (lokasi_jemput, lokasi_tujuan)
+VALUES ('Jl. Sudirman No.10', 'Jl. Thamrin No.20');
+
+-- Hubungkan customer ke order
+INSERT INTO user_orders (user_id, order_id, role_in_order)
+VALUES (
+    (SELECT id FROM app_users WHERE nama='Dina Customer'),
+    LAST_INSERT_ID(),
+    'CUSTOMER'
+);
+
+-- Tambahkan order detail
+INSERT INTO order_details (order_id, jenis_kendaraan_id, jarak_km, tarif_per_km, subtotal)
+VALUES (
+    (SELECT id FROM orders ORDER BY id DESC LIMIT 1),
+    (SELECT id FROM jenis_kendaraan WHERE nama_jenis='Motor'),
+    10,
+    2.5,
+    25.00
+);
+
+-- Cek order dan detail
+SELECT o.id AS order_id, au.nama AS customer, o.lokasi_jemput, o.lokasi_tujuan, od.jarak_km, od.subtotal
+FROM orders o
+JOIN order_details od ON o.id = od.order_id
+JOIN user_orders uo ON o.id = uo.order_id
+JOIN app_users au ON uo.user_id = au.id
+WHERE uo.role_in_order = 'CUSTOMER';
+
+
+
+-- Ambil order terakhir
+SET @last_order_id = (SELECT id FROM orders ORDER BY id DESC LIMIT 1);
+
+-- Assign Budi sebagai driver dan update status
+UPDATE orders
+SET assigned_driver_id = (SELECT id FROM app_users WHERE nama='Budi'),
+    status = 'ACCEPTED'
+WHERE id = @last_order_id;
+
+-- Catat histori status
+INSERT INTO order_status_history (order_id, status, changed_by, remarks)
+VALUES (@last_order_id, 'ACCEPTED', NULL, 'System auto-assigned driver');
+
+-- Cek hasil
+SELECT o.id, o.status, au.nama AS driver, osh.status AS history_status, osh.remarks
+FROM orders o
+LEFT JOIN app_users au ON o.assigned_driver_id = au.id
+LEFT JOIN order_status_history osh ON o.id = osh.order_id;
+
+
+
+-- Update status trip selesai
+UPDATE orders
+SET status = 'COMPLETED',
+    status_pembayaran = 'PAID',
+    harga_total = 25.00
+WHERE id = @last_order_id;
+
+-- Catat histori status selesai
+INSERT INTO order_status_history (order_id, status, changed_by, remarks)
+VALUES (@last_order_id, 'COMPLETED', (SELECT id FROM app_users WHERE nama='Budi'), 'Trip finished successfully');
+
+-- Catat payment
+INSERT INTO payments (order_id, jumlah, metode, status)
+VALUES (@last_order_id, 25.00, 'WALLET', 'SUCCESS');
+
+-- Cek payment & status order
+SELECT o.id, o.status, o.status_pembayaran, p.jumlah, p.metode, p.status
+FROM orders o
+JOIN payments p ON o.id = p.order_id;
 
 select * from payments;
 
--- Budi selesai mengantar Andi → status order berubah menjadi COMPLETED.
-UPDATE orders SET status='COMPLETED', status_pembayaran='PAID' WHERE id=@order_id;
 
-select * from orders;
+-- Pastikan customer punya wallet
+INSERT INTO user_wallet (user_id, balance)
+SELECT id, 0
+FROM app_users
+WHERE nama='Dina Customer'
+ON DUPLICATE KEY UPDATE balance = balance;
 
+-- Ambil wallet_id
+SET @wallet_id = (SELECT user_id FROM user_wallet uw JOIN app_users au ON uw.user_id = au.id WHERE au.nama='Dina Customer');
 
--- Driver melihat order yang tersedia (belum di-accept driver)
-SELECT
-    o.id AS order_id,
-    o.lokasi_jemput,
-    o.lokasi_tujuan,
-    o.status,
-    o.harga_total,
-    od.jarak_km,
-    od.subtotal,
-    u.nama AS customer_nama,
-    u.no_hp AS customer_nohp
-FROM orders o
-JOIN order_details od ON o.id = od.order_id
-JOIN user_orders uo 
-    ON o.id = uo.order_id 
-   AND uo.role_in_order = 'CUSTOMER'
-JOIN app_users u 
-    ON u.id = uo.user_id
-WHERE o.status = 'PENDING';
+-- Catat wallet transaction
+INSERT INTO wallet_transactions (wallet_id, type, amount, order_id)
+VALUES (@wallet_id, 'PAYMENT', 25.00, @last_order_id);
 
+-- Kurangi balance wallet
+UPDATE user_wallet
+SET balance = balance - 25.00,
+    updated_at = NOW()
+WHERE user_id = @wallet_id;
 
-
--- Driver ingin melihat semua order yang ditangani
--- Untuk Driver Budi
-SELECT 
-    o.id AS order_id,
-    o.lokasi_jemput,
-    o.lokasi_tujuan,
-    o.status,
-    o.harga_total,
-    o.status_pembayaran,
-    uo_driver.role_in_order AS my_role,
-    u.nama AS customer_nama,
-    u.no_hp AS customer_nohp,
-    od.kendaraan_id,
-    od.jarak_km,
-    od.subtotal
-FROM orders o
-JOIN user_orders uo_driver 
-    ON o.id = uo_driver.order_id 
-   AND uo_driver.role_in_order = 'DRIVER'
-JOIN app_users driver 
-    ON driver.id = uo_driver.user_id 
-   AND driver.nama = 'Budi'
-JOIN user_orders uo_customer 
-    ON o.id = uo_customer.order_id 
-   AND uo_customer.role_in_order = 'CUSTOMER'
-JOIN app_users u 
-    ON u.id = uo_customer.user_id
-JOIN order_details od 
-    ON o.id = od.order_id;
-
-
--- Customer ingin melihat status ordernya.
--- Untuk Customer Andi
-SELECT 
-    o.id AS order_id,
-    o.lokasi_jemput,
-    o.lokasi_tujuan,
-    o.status,
-    o.harga_total,
-    o.status_pembayaran,
-    uo.role_in_order AS my_role,        -- role customer
-    u2.nama AS driver_nama,
-    u2.no_hp AS driver_nohp
-FROM orders o
-JOIN user_orders uo 
-    ON o.id = uo.order_id 
-    AND uo.role_in_order='CUSTOMER'    -- pastikan join ini hanya untuk CUSTOMER
-JOIN app_users u 
-    ON u.id = uo.user_id 
-    AND u.nama='Andi'                  -- filter order customer Andi
-LEFT JOIN user_orders uo2 
-    ON o.id = uo2.order_id AND uo2.role_in_order='DRIVER'
-LEFT JOIN app_users u2 
-    ON u2.id = uo2.user_id;
+-- Cek wallet dan transaksi
+SELECT au.nama, uw.balance, wt.type, wt.amount
+FROM user_wallet uw
+JOIN wallet_transactions wt ON uw.user_id = wt.wallet_id
+JOIN app_users au ON uw.user_id = au.id
+WHERE au.nama = 'Dina Customer';
 
 
 
--- Jika order dibatalkan sebelum driver menerima, hapus order dan detail.
--- Hapus detail order
-DELETE FROM order_details WHERE order_id=@order_id;
+-- Dina kasih rating Budi
+INSERT INTO reviews (order_id, reviewer_id, reviewee_id, rating, comment)
+VALUES (@last_order_id,
+        (SELECT id FROM app_users WHERE nama='Dina Customer'),
+        (SELECT id FROM app_users WHERE nama='Budi'),
+        5,
+        'Driver sangat profesional!');
 
-select*from order_details;
-
--- Hapus user_orders
-DELETE FROM user_orders WHERE order_id=@order_id;
-
-
--- Hapus order
-DELETE FROM orders WHERE id=@order_id;
-
-
-
+-- Cek review
+SELECT r.rating, r.comment, reviewer.nama AS reviewer, reviewee.nama AS reviewee
+FROM reviews r
+JOIN app_users reviewer ON r.reviewer_id = reviewer.id
+JOIN app_users reviewee ON r.reviewee_id = reviewee.id;
 
 
 
+-- Soft delete order
+UPDATE orders
+SET deleted_at = CURRENT_TIMESTAMP
+WHERE id = @last_order_id;
 
+-- Soft delete customer
+UPDATE app_users
+SET deleted_at = CURRENT_TIMESTAMP
+WHERE nama='Dina Customer';
+
+-- Cek soft delete
+SELECT * FROM orders WHERE deleted_at IS NOT NULL;
+SELECT * FROM app_users WHERE deleted_at IS NOT NULL;
 
 
 
