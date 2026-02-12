@@ -488,54 +488,179 @@ Database failure
 Unexpected server error → Database error
 
 2. Roles & UserRoles
-   2.1 List Roles
+
+2.1 List Roles
 
 Endpoint: GET /roles
+Description:
+Mengambil daftar seluruh role yang tersedia di sistem, termasuk relasi parent role (jika ada).
 
-Response (200 OK):
+Authentication:
+Required (JWT Bearer Token).
 
+Authorization:
+Hanya role ADMIN yang dapat mengakses endpoint ini.
+
+Request Header:
+Authorization: Bearer <jwt_token>
+Accept: application/json
+
+Business Rules:
+
+- Data role diambil dari tabel roles.
+
+- parentId bernilai null jika role tidak memiliki parent.
+
+- Endpoint ini hanya menampilkan role aktif.
+
+Success Response (200 OK)
+Response Header:
+Content-Type: application/json
+
+Response Body:
 [
 { "id": 1, "role": "ADMIN", "parentId": null },
-{ "id": 2, "role": "CUSTOMER_BASIC", "parentId": null }
+{ "id": 2, "role": "CUSTOMER_BASIC", "parentId": null },
+{ "id": 3, "role": "CUSTOMER_SILVER", "parentId": 2 }
 ]
 
-Error Handling: 500 Internal Server Error → Database error
+Error Responses
+Semua error menggunakan format standar berikut:
+{
+"timestamp": "2026-02-11T16:00:00",
+"status": 500,
+"error": "Internal Server Error",
+"message": "Terjadi kesalahan pada server",
+"path": "/roles"
+}
 
-2.2 Assign Role to User
+- 401 Unauthorized
+  Kasus:
+  Token tidak dikirim
+  Token invalid
+  Token expired
+
+- 403 Forbidden
+  Kasus:
+  User bukan ADMIN
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Unexpected server error
+
+  2.2 Assign Role to User
 
 Endpoint: POST /user_roles
 
+Description:
+Menambahkan role tertentu ke user.
+
+Authentication:
+Required (JWT Bearer Token).
+
+Authorization:
+Hanya role ADMIN yang dapat melakukan assign role.
+
+Request Header:
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+Accept: application/json
+
 Request Body:
+| Field | Type | Required | Validation |
+| ------ | ---- | -------- | ---------------------------- |
+| userId | long | Yes | Harus ada di tabel app_users |
+| roleId | long | Yes | Harus ada di tabel roles |
 
+Contoh Request Body:
 {
 "userId": 1,
 "roleId": 2
 }
 
-Response (201 Created):
+Business Rules:
 
+- User harus ada dan deleted_at harus NULL.
+- Role harus ada.
+- Kombinasi (user_id, role_id) tidak boleh sudah ada.
+- Composite PK pada user_roles mencegah duplikasi data.
+
+Success Response (201 Created):
+Response Header: Content-Type: application/json
+
+Response Body:
 {
 "userId": 1,
 "roleId": 2
 }
 
-Error Handling:
+Error Responses
 
-404 Not Found → User atau Role tidak ditemukan
+Semua error menggunakan format standar berikut:
+{
+"timestamp": "2026-02-11T16:05:00",
+"status": 404,
+"error": "Not Found",
+"message": "User tidak ditemukan",
+"path": "/user_roles"
+}
 
-409 Conflict → Role sudah terassign
+- 400 Bad Request
+  Kasus:
+  Body kosong
+  Field tidak lengkap
+  Format tidak sesuai
 
-400 Bad Request → Body invalid
+- 401 Unauthorized
+  Kasus:
+  Token invalid / expired
 
-500 Internal Server Error → Database error
+- 403 Forbidden
+  Kasus:
+  Bukan ADMIN
+
+- 404 Not Found
+  Kasus:
+  User tidak ditemukan
+  Role tidak ditemukan
+
+- 409 Conflict
+  Kasus:
+  Role sudah terassign ke user tersebut
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Unexpected server error
 
 3. Kendaraan & Jenis Kendaraan
    3.1 Create Jenis Kendaraan
 
 Endpoint: POST /jenis_kendaraan
 
-Request Body:
+Description:
+Menambahkan jenis kendaraan baru yang akan digunakan dalam sistem (misalnya Mobil, Motor, dll).
 
+Authentication:
+Memerlukan authentication (Bearer Token).
+
+Authorization:
+Hanya role ADMIN yang diperbolehkan.
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+Request Body:
+| Field | Type | Required | Validation |
+| ---------- | ------- | -------- | ------------------------ |
+| namaJenis | string | Yes | max 100 karakter, unique |
+| kapasitas | integer | Yes | >= 1 |
+| tarifPerKm | number | Yes | >= 0 |
+| deskripsi | string | No | max 255 karakter |
+
+Contoh Request Body:
 {
 "namaJenis": "Mobil",
 "kapasitas": 4,
@@ -543,24 +668,89 @@ Request Body:
 "deskripsi": "Mobil standar"
 }
 
-Response (201 Created)
+Business Rules:
+namaJenis harus unik.
+kapasitas tidak boleh kurang dari 1.
+tarifPerKm tidak boleh negatif.
+Soft delete berlaku (tidak boleh membuat namaJenis yang sama jika masih aktif).
 
-Error Handling:
+Success Response (201 Created)
 
-400 Bad Request → Field kosong
+Response Header:
+Content-Type: application/json
+Location: /jenis_kendaraan/1
 
-400 Bad Request → Kapasitas < 0
+Response Body:
+{
+"id": 1,
+"namaJenis": "Mobil",
+"kapasitas": 4,
+"tarifPerKm": 5000,
+"deskripsi": "Mobil standar",
+"createdAt": "2026-02-12T10:00:00"
+}
 
-400 Bad Request → Tarif < 0
+Error Response
+Standard Format:
+{
+"timestamp": "2026-02-12T10:00:00",
+"status": 400,
+"error": "Bad Request",
+"message": "Kapasitas harus lebih dari 0",
+"path": "/jenis_kendaraan"
+}
 
-500 Internal Server Error → Database error
+- 400 Bad Request
+  Kasus:
+  Field wajib kosong
+  Kapasitas < 1
+  Tarif < 0
+  Format data tidak valid
 
-3.2 Create Kendaraan
+- 409 Conflict
+  Kasus:
+  namaJenis sudah terdaftar
+
+- 401 Unauthorized
+  Kasus:
+  Token tidak valid atau tidak ada
+
+- 403 Forbidden
+  Kasus:
+  Role bukan ADMIN
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Unexpected server error
+
+  3.2 Create Kendaraan
 
 Endpoint: POST /kendaraan
 
+Description:
+Menambahkan kendaraan baru yang terhubung dengan driver tertentu.
+
+Authentication:
+Memerlukan authentication (Bearer Token).
+
+Authorization:
+Role ADMIN atau DRIVER.
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
 Request Body:
 
+| Field            | Type    | Required | Validation                         |
+| ---------------- | ------- | -------- | ---------------------------------- |
+| platNomor        | string  | Yes      | unique, max 20 karakter            |
+| jenisKendaraanId | integer | Yes      | harus ada di tabel jenis_kendaraan |
+| driverId         | integer | Yes      | harus ada & memiliki role DRIVER   |
+| status           | string  | Yes      | enum: ACTIVE, INACTIVE             |
+
+contoh:
 {
 "platNomor": "DK1234AB",
 "jenisKendaraanId": 1,
@@ -568,45 +758,194 @@ Request Body:
 "status": "ACTIVE"
 }
 
-Error Handling:
+Business Rules:
+platNomor harus unik.
+1 driver hanya boleh memiliki 1 kendaraan aktif.
+Driver harus memiliki role DRIVER.
+Tidak boleh assign kendaraan ke driver yang sudah di-soft-delete.
 
-400 Bad Request → Field kosong
+Success Response:
+Content-Type: application/json
+Location: /kendaraan/2
 
-409 Conflict → Plat nomor atau driver sudah ada
+Response Body:
+{
+"id": 2,
+"platNomor": "DK1234AB",
+"jenisKendaraanId": 1,
+"driverId": 2,
+"status": "ACTIVE",
+"createdAt": "2026-02-12T10:10:00"
+}
 
-404 Not Found → Jenis kendaraan atau driver tidak ada
+Error Response
+Standard Error Format:
+{
+"timestamp": "2026-02-12T10:10:00",
+"status": 409,
+"error": "Conflict",
+"message": "Plat nomor sudah terdaftar",
+"path": "/kendaraan"
+}
 
-500 Internal Server Error → Database error
+- 400 Bad Request
+  Kasus:
+  Field wajib kosong
+  Status tidak valid
+  Format data salah
+
+- 404 Not Found
+  Kasus:
+  Jenis kendaraan tidak ditemukan
+  Driver tidak ditemukan
+
+- 409 Conflict
+  Kasus:
+  Plat nomor sudah terdaftar
+  Driver sudah memiliki kendaraan aktif
+
+- 401 Unauthorized
+  Kasus:
+  Token tidak valid
+
+- 403 Forbidden
+  Kasus:
+  Role tidak memiliki akses
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Unexpected server error
 
 4. Orders & Order Details
    4.1 Create Order
 
 Endpoint: POST /orders
 
-Request Body:
+Description:
+Membuat order baru oleh customer untuk perjalanan dari lokasi jemput ke lokasi tujuan.
 
+Authentication:
+Memerlukan authentication (Bearer Token).
+
+Authorization:
+Hanya role CUSTOMER_BASIC atau CUSTOMER_SILVER.
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+Request Body:
+| Field | Type | Required | Validation |
+| ---------------- | ------- | -------- | -------------------------------- |
+| lokasiJemput | string | Yes | max 200 karakter |
+| lokasiTujuan | string | Yes | max 200 karakter |
+| assignedDriverId | integer | No | harus ada & memiliki role DRIVER |
+
+Catatan: assignedDriverId boleh null jika sistem menggunakan auto-assign driver.
+
+Contoh:
 {
 "lokasiJemput": "Denpasar",
 "lokasiTujuan": "Ubud",
 "assignedDriverId": 2
 }
 
-Error Handling:
+Business Rules:
+User yang login otomatis dicatat di tabel user_orders sebagai role CUSTOMER.
+Status awal order: PENDING.
+Status pembayaran awal: UNPAID.
+Jika assignedDriverId diisi:
 
-400 Bad Request → Field kosong
+- Driver harus ada.
 
-404 Not Found → Driver tidak ada
+- Driver harus memiliki role DRIVER.
 
-409 Conflict → Driver sudah terassign order
+- Driver tidak boleh sedang memiliki order dengan status ACCEPTED atau ON_PROGRESS.
 
-500 Internal Server Error → Database error
+Soft delete berlaku (deleted_at IS NULL).
 
-4.2 Create Order Detail
+Success Respond :201 Created
+Response Header :
+Content-Type: application/json
+Location: /orders/1
+
+Response Body:
+{
+"id": 1,
+"lokasiJemput": "Denpasar",
+"lokasiTujuan": "Ubud",
+"assignedDriverId": 2,
+"status": "PENDING",
+"statusPembayaran": "UNPAID",
+"hargaTotal": 0,
+"createdAt": "2026-02-12T11:00:00"
+}
+
+Error Response
+Standard format:
+{
+"timestamp": "2026-02-12T11:00:00",
+"status": 404,
+"error": "Not Found",
+"message": "Driver tidak ditemukan",
+"path": "/orders"
+}
+
+- 400 Bad Request
+  Kasus:
+  Field wajib kosong
+  Format data tidak valid
+
+- 404 Not Found
+  Kasus:
+  Driver tidak ditemukan
+
+- 409 Conflict
+  Kasus:
+  Driver sedang dalam order aktif
+
+- 401 Unauthorized
+  Kasus:
+  Token tidak valid
+
+- 403 Forbidden
+  Kasus:
+  Role bukan CUSTOMER
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Unexpected server error
+
+  4.2 Create Order Detail
 
 Endpoint: POST /order_details
 
-Request Body:
+Description:
+Menambahkan detail order seperti jenis kendaraan, kendaraan yang digunakan, jarak, dan perhitungan tarif.
 
+Authentication:
+Memerlukan authentication (Bearer Token).
+
+Authorization:
+Role CUSTOMER atau ADMIN.
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+Request Body:
+| Field | Type | Required | Validation |
+| ---------------- | ------- | -------- | ---------------------------------- |
+| orderId | integer | Yes | harus ada |
+| jenisKendaraanId | integer | Yes | harus ada |
+| kendaraanId | integer | Yes | harus ada & sesuai jenis kendaraan |
+| jarakKm | number | Yes | >= 0 |
+| tarifPerKm | number | Yes | >= 0 |
+| subtotal | number | Yes | >= 0 |
+
+Contoh:
 {
 "orderId": 1,
 "jenisKendaraanId": 1,
@@ -616,143 +955,1035 @@ Request Body:
 "subtotal": 50000
 }
 
+Business Rules:
+1 order hanya boleh memiliki 1 order_detail (UNIQUE constraint).
+orderId harus valid dan belum memiliki detail.
+kendaraanId harus sesuai dengan jenisKendaraanId.
+subtotal seharusnya = jarakKm \* tarifPerKm (backend tetap melakukan validasi).
+Setelah order detail dibuat:
+
+- orders.harga_total diperbarui.
+  Tidak bisa membuat detail jika order sudah CANCELLED atau COMPLETED.
+
+Success Response : 201 Created
+
+Response Header:
+Content-Type: application/json
+Location: /order_details/1
+
+Response Body:
+{
+"id": 1,
+"orderId": 1,
+"jenisKendaraanId": 1,
+"kendaraanId": 2,
+"jarakKm": 10,
+"tarifPerKm": 5000,
+"subtotal": 50000,
+"createdAt": "2026-02-12T11:05:00"
+}
+
+Error Response
+Standard format:
+{
+"timestamp": "2026-02-12T11:05:00",
+"status": 409,
+"error": "Conflict",
+"message": "Order detail sudah ada",
+"path": "/order_details"
+}
+
 Error Handling:
 
-404 Not Found → Order / kendaraan / jenis kendaraan tidak ada
+- 400 Bad Request
+  Kasus:
+  Field kosong
+  Nilai negatif
+  Subtotal tidak sesuai perhitungan
 
-409 Conflict → Order detail sudah ada
+- 404 Not Found
+  Kasus:
+  Order tidak ditemukan
+  Jenis kendaraan tidak ditemukan
+  Kendaraan tidak ditemukan
 
-400 Bad Request → Field invalid
+- 409 Conflict
+  Kasus:
+  Order detail sudah ada
+  Order sudah selesai atau dibatalkan
 
-500 Internal Server Error → Database error
+- 401 Unauthorized
+  Kasus:
+  Token invalid
+
+- 403 Forbidden
+  Kasus:
+  Tidak berhak mengakses order tersebut
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Unexpected server error
+
+  4.3 Update Order Status
+
+Endpoint : PATCH /orders/{id}/status
+
+Description:
+Mengubah status order sesuai dengan lifecycle yang telah ditentukan sistem.
+Setiap perubahan status akan:
+
+- Memvalidasi transisi status
+
+- Memvalidasi role yang melakukan perubahan
+
+- Mencatat perubahan ke order_status_history
+
+Authentication:
+Wajib menggunakan JWT Bearer Token.
+Authorization: Bearer <access_token>
+
+Authorization (Role Based):
+| Role | Allowed Action |
+| -------- | ------------------------------------- |
+| CUSTOMER | CANCELLED (hanya jika status PENDING) |
+| DRIVER | ACCEPTED, ON_PROGRESS, COMPLETED |
+| ADMIN | Semua status |
+
+Allowed Status Transition (State Machine):
+| Current Status | Allowed Next Status |
+| -------------- | ---------------------- |
+| PENDING | ACCEPTED, CANCELLED |
+| ACCEPTED | ON_PROGRESS, CANCELLED |
+| ON_PROGRESS | COMPLETED |
+| COMPLETED | - (final state) |
+| CANCELLED | - (final state) |
+
+Jika transisi tidak sesuai → 400 Bad Request
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <token>
+
+Request Body:
+| Field | Type | Required | Validation |
+| ------ | ------ | -------- | ----------------- |
+| status | string | Yes | ENUM order_status |
+
+contoh:
+{
+"status": "ACCEPTED"
+}
+
+Business Rules:
+Order dengan deleted_at != NULL tidak dapat diubah.
+Driver hanya boleh mengubah order yang assigned ke dirinya.
+Customer hanya boleh cancel order miliknya.
+Jika status menjadi COMPLETED:
+
+- Tidak dapat diubah lagi.
+  Jika status menjadi CANCELLED:
+- Tidak dapat diubah lagi.
+  Setiap perubahan harus dicatat ke order_status_history.
+
+Success Response : 200 OK
+Response Header:
+Content-Type: application/json
+
+Response Body:
+{
+"id": 1,
+"status": "ACCEPTED",
+"updatedAt": "2026-02-12T11:20:00"
+}
+
+Error Response
+Standard Format:
+{
+"timestamp": "2026-02-12T11:20:00",
+"status": 400,
+"error": "Bad Request",
+"message": "Transisi status tidak valid",
+"path": "/orders/1/status"
+}
+
+Error Handling:
+
+- 400 Bad Request
+  Kasus:
+  Status tidak valid
+  Transisi status tidak sesuai state machine
+  Order sudah dalam status final
+  Body kosong
+
+- 401 Unauthorized
+  Kasus:
+  Token tidak ada
+  Token invalid
+  Token expired
+
+- 403 Forbidden
+  Kasus:
+  Driver mengubah order milik driver lain
+  Customer mencoba ACCEPT order
+  Role tidak memiliki hak akses
+
+- 404 Not Found
+  Kasus:
+  Order tidak ditemukan
+
+- 409 Conflict
+  Kasus:
+  Order sedang diproses oleh driver lain
+  Driver mencoba accept order yang sudah ACCEPTED
+
+- 500 Internal Server Error
+  Kasus:
+  Gagal insert ke order_status_history
+  Database failure
 
 5. Payments
    5.1 Create Payment
 
 Endpoint: POST /payments
 
-Request Body:
+Description:
+Membuat pembayaran untuk sebuah order.
+Endpoint ini akan:
 
+- Membuat record pada tabel payments
+- engupdate orders.status_pembayaran
+- Mengupdate orders.status jika diperlukan
+- Memicu wallet transaction jika metode = WALLET
+
+Authentication:
+Required (JWT Bearer Token)
+
+Authorization:
+CUSTOMER → hanya boleh membayar order miliknya
+ADMIN → boleh membuat pembayaran untuk order mana pun
+DRIVER → tidak boleh membuat payment
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+Request Body:
+| Field | Type | Required | Validation |
+| ------- | ------ | -------- | ----------------------------- |
+| orderId | number | Yes | Must exist & not soft deleted |
+| jumlah | number | Yes | >= 0 |
+| metode | string | Yes | CASH / CARD / WALLET |
+
+Contoh:
 {
 "orderId": 1,
 "jumlah": 50000,
 "metode": "CASH"
 }
 
+Business Rules:
+
+1. Order harus ada dan deleted_at IS NULL
+
+2. Order harus berstatus COMPLETED
+3. orders.status_pembayaran harus UNPAID
+
+4. Jumlah harus sama dengan orders.harga_total
+
+5. Satu order hanya boleh memiliki satu payment
+
+6. Jika metode = WALLET:
+
+- Saldo user harus cukup
+
+- Akan dibuat record di wallet_transactions
+
+- Balance akan dikurangi
+
+7. Setelah payment sukses:
+
+- orders.status_pembayaran → PAID
+
+- payments.status → SUCCESS
+
+- waktu_pembayaran diisi
+
+Success Response : 201 Created
+
+Response Header:
+Content-Type: application/json
+Location: /payments/{id}
+
+Response Body:
+{
+"id": 10,
+"orderId": 1,
+"jumlah": 50000,
+"metode": "CASH",
+"status": "SUCCESS",
+"waktuPembayaran": "2026-02-12T12:10:00"
+}
+
+Error Responses
+Semua error menggunakan format standar:
+{
+"timestamp": "2026-02-12T12:10:00",
+"status": 400,
+"error": "Bad Request",
+"message": "Order belum selesai",
+"path": "/payments"
+}
+
+- 400 Bad Request
+  Kasus:
+  Field kosong
+  Jumlah < 0
+  Metode tidak valid
+  Order belum COMPLETED
+  Jumlah tidak sesuai harga_total
+
+- 401 Unauthorized
+  Token tidak valid
+  Token expired
+
+- 403 Forbidden
+  User bukan pemilik order
+  Role tidak diizinkan membuat payment
+- 404 Not Found
+  Order tidak ditemukan
+
+- 409 Conflict
+  Payment sudah ada untuk order ini
+  Saldo tidak cukup (metode WALLET)
+  Order sudah PAID
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Gagal update status order
+  Transaction rollback
+
+  5.2 Refund Payment
+
+Endpoint : POST /payments/{paymentId}/refund
+
+Description:
+Melakukan refund terhadap payment yang sudah SUCCESS.
+Refund bisa terjadi karena:
+
+- Driver tidak datang
+- Order dibatalkan oleh sistem
+- Overcharge
+- Dispute
+- Admin decision
+
+Authentication:
+Required (JWT Bearer)
+
+Authorization:
+ADMIN → boleh refund semua payment
+CUSTOMER → hanya boleh refund order miliknya (jika status memungkinkan)
+DRIVER → tidak boleh refund
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+Request Body:
+| Field | Type | Required | Description |
+| ------ | ------ | -------- | ------------------- |
+| reason | string | Yes | Alasan refund |
+| amount | number | No | Jika partial refund |
+
+contoh:
+{
+"reason": "Driver tidak datang"
+}
+
+contoh partial refund:
+{
+"reason": "Overcharge 5rb",
+"amount": 5000
+}
+
+Business Rules:
+
+1. Payment harus ada
+2. Payment.status harus SUCCESS
+3. Belum pernah di-refund penuh
+4. Total refund tidak boleh melebihi jumlah pembayaran
+5. Jika metode WALLET:
+
+- Tambah saldo wallet
+- Buat wallet transaction type = REFUND
+
+6. Jika metode CASH:
+
+- System hanya mencatat refund (manual process)
+
+7. Jika metode CARD:
+
+- Diproses seperti CASH (manual simulation)
+
+8. Refund harus diproses dalam database transaction untuk mencegah double refund.
+
+Refund Flow
+1️⃣ Validasi payment
+2️⃣ Hitung remaining refundable amount
+3️⃣ Update payment:
+
+- refund_amount += amount
+- Jika refund_amount == jumlah:
+  status = REFUNDED
+  refunded_at = CURRENT_TIMESTAMP
+
+4️⃣ Jika WALLET:
+
+- Tambah saldo wallet
+- Insert wallet_transaction (type=REFUND)
+
+5️⃣ Jika full refund:
+
+- orders.status_pembayaran → REFUNDED
+
+Success Response: 200 OK
+{
+"paymentId": 10,
+"originalAmount": 50000,
+"refundedAmount": 50000,
+"refundStatus": "FULL",
+"message": "Refund berhasil diproses"
+}
+
 Error Handling:
 
-404 Not Found → Order tidak ada
+- 400 Bad Request
+  Reason kosong
+  Amount <= 0
+  Amount melebihi sisa refundable
 
-409 Conflict → Payment sudah ada
+{
+"status": 400,
+"error": "Bad Request",
+"message": "Jumlah refund melebihi sisa yang dapat direfund",
+"path": "/payments/10/refund"
+}
 
-400 Bad Request → Field invalid
+- 401 Unauthorized
+  Token invalid / expired
 
-500 Internal Server Error → Database error
+- 403 Forbidden
+  User bukan pemilik order dan bukan ADMIN
+
+- 404 Not Found
+  Payment tidak ditemukan
+
+- 500 Internal Server Error
+  Database error / rollback
 
 6. Reviews
    6.1 Create Review
 
 Endpoint: POST /reviews
+Description:
+Membuat review terhadap user lain berdasarkan order yang sudah COMPLETED.
+
+Authentication:
+Memerlukan authentication (Bearer Token).
+
+Authorization:
+CUSTOMER → boleh review driver dalam order miliknya
+DRIVER → boleh review customer dalam order yang dikerjakan
+ADMIN → tidak diperbolehkan membuat review
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
 
 Request Body:
+| Field      | Type    | Required | Validation                   |
+| ---------- | ------- | -------- | ---------------------------- |
+| orderId    | integer | Yes      | harus ada & status COMPLETED |
+| revieweeId | integer | Yes      | harus terlibat dalam order   |
+| rating     | integer | Yes      | 1–5                          |
+| comment    | string  | No       | max 1000 karakter            |
 
+contoh:
 {
-"orderId": 1,
-"reviewerId": 1,
-"revieweeId": 2,
-"rating": 5,
-"comment": "Pelayanan cepat"
+  "orderId": 10,
+  "revieweeId": 5,
+  "rating": 5,
+  "comment": "Driver sangat ramah dan tepat waktu"
+}
+reviewerId diambil dari JWT (bukan dari request body).
+
+Business Rules:
+1. Order harus ada.
+2. Order.status harus COMPLETED.
+3. Reviewer harus terlibat dalam order.
+4. Reviewee harus terlibat dalam order.
+5. Reviewer tidak boleh mereview dirinya sendiri.
+6. Satu reviewer hanya boleh membuat 1 review per order.
+7. Rating harus antara 1 sampai 5.
+8. Review diproses dalam database transaction.
+
+Success Response: Status: 201 Created
+
+Content-Type: application/json
+Location: /reviews/{id}
+
+Response Body:
+{
+  "id": 15,
+  "orderId": 10,
+  "reviewerId": 3,
+  "revieweeId": 5,
+  "rating": 5,
+  "comment": "Driver sangat ramah dan tepat waktu",
+  "createdAt": "2026-02-12T12:30:00"
 }
 
-Error Handling:
+6.2 Get Reviews by User
 
-404 Not Found → Order / User tidak ada
+Endpoint:
+GET /users/{userId}/reviews
 
-409 Conflict → Review sudah ada
+Description:
+Mengambil daftar review yang diterima oleh user tertentu.
 
-400 Bad Request → Rating <1 atau >5
+Authentication:
+Optional (atau Required jika ingin proteksi).
 
-500 Internal Server Error → Database error
+Success Response:
+{
+  "content": [
+    {
+      "id": 15,
+      "orderId": 10,
+      "reviewerId": 3,
+      "rating": 5,
+      "comment": "Driver sangat ramah",
+      "createdAt": "2026-02-12T12:30:00"
+    }
+  ],
+  "page": 1,
+  "size": 10,
+  "totalElements": 25,
+  "totalPages": 3
+}
+
+
+Error Response (Standard Format):
+{
+  "timestamp": "2026-02-12T12:30:00",
+  "status": 409,
+  "error": "Conflict",
+  "message": "Review sudah pernah dibuat untuk order ini",
+  "path": "/reviews"
+}
+
+
+- 400 Bad Request
+Kasus:
+Rating < 1 atau > 5
+orderId kosong
+revieweeId kosong
+Reviewer dan reviewee sama
+
+- 401 Unauthorized
+Kasus:
+Token invalid / expired
+
+- 403 Forbidden
+Kasus:
+User bukan bagian dari order
+Role tidak diizinkan membuat review
+
+- 404 Not Found
+Kasus:
+Order tidak ditemukan
+Reviewee tidak ditemukan
+
+- 409 Conflict
+Kasus:
+Order belum COMPLETED
+Review sudah pernah dibuat
+
+- 404 Not Found
+  Kasus:
+  User tidak ditemukan
+
+- 500 Internal Server Error
+Kasus:
+Database failure
+Unexpected server error
 
 7. Wallet & Transactions
-   7.1 Create Transaction
+7.1 Get My Wallet
 
-Endpoint: POST /wallet/transactions
+Endpoint:
+GET /wallet/me
 
-Modul: Wallet & Transactions
+Description:
+Mengambil informasi wallet user yang sedang login.
 
-Deskripsi:
-Membuat transaksi pada wallet pengguna, bisa berupa TOPUP, PAYMENT, atau REFUND.
+Authentication:
+Required (Bearer Token)
 
-Request Body contoh:
+Authorization:
+CUSTOMER atau DRIVER
 
+Success Response : 200 Ok
 {
-"walletId": 1,
-"type": "TOPUP",
-"amount": 100000
+  "userId": 5,
+  "balance": 150000,
+  "updatedAt": "2026-02-12T13:00:00"
 }
 
-Response:
-201 Created
+Error Response (Standard Format):
+{
+  "timestamp": "2026-02-12T13:00:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Wallet tidak ditemukan",
+  "path": "/wallet/me"
+}
 
-Error Handling:
+Possible Errors:
+- 401 Unauthorized
+Kasus:
+Token tidak valid
+Token expired
+Tidak mengirim Authorization header
 
-404 Not Found → Wallet tidak ditemukan
+- 403 Forbidden
+Kasus:
+Role bukan CUSTOMER atau DRIVER
 
-400 Bad Request → Amount kurang dari 0
+- 404 Not Found
+Kasus:
+Wallet belum dibuat untuk user tersebut
 
-400 Bad Request → Tipe transaksi tidak valid (harus TOPUP, PAYMENT, REFUND)
+- 500 Internal Server Error
+Kasus:
+Database error
+Unexpected server failure
 
-409 Conflict → Saldo tidak cukup (khusus PAYMENT/REFUND)
 
-500 Internal Server Error → Database error
+7.2 Topup Wallet
 
-8. User Verification
-   8.1 Submit Verification
+Endpoint:
+POST /wallet/topup
 
-Endpoint: POST /user_verification
+Description:
+Melakukan topup saldo wallet user.
+
+Authentication:
+Required (Bearer Token)
+
+Authorization:
+CUSTOMER atau DRIVER
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
 
 Request Body:
-
+| Field  | Type   | Required | Validation |
+| ------ | ------ | -------- | ---------- |
+| amount | number | Yes      | > 0        |
+Contoh:
 {
-"userId": 1,
-"documentType": "KTP",
-"documentPath": "/uploads/ktp.jpg"
+    "amount" : 100000
 }
 
-Error Handling:
+Business Rules:
+1. Wallet harus ada.
+2. Amount harus lebih dari 0.
+3. Topup diproses dalam database transaction.
+4. Update balance += amount.
+5. Insert wallet_transaction type = TOPUP.
 
-404 Not Found → User tidak ada
+Success Response (201 Created):
+{
+  "walletId": 5,
+  "type": "TOPUP",
+  "amount": 100000,
+  "balanceAfter": 250000,
+  "createdAt": "2026-02-12T13:05:00"
+}
 
-400 Bad Request → Field kosong
+Error Response (Standard Format):
+{
+  "timestamp": "2026-02-12T13:05:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Amount harus lebih dari 0",
+  "path": "/wallet/topup"
+}
 
-409 Conflict → Verifikasi sudah ada
+Possible Errors:
+- 400 Bad Request
+Kasus:
+Amount kosong
+Amount <= 0
+Format number salah
 
-500 Internal Server Error → Database error
+- 401 Unauthorized
+Kasus:
+Token invalid / expired
+
+- 403 Forbidden
+Kasus:
+Role tidak diizinkan
+
+- 404 Not Found
+Kasus:
+Wallet tidak ditemukan
+
+- 500 Internal Server Error
+Kasus:
+Database error
+Gagal commit transaction
+
+7.3 Get My Wallet Transactions
+
+Endpoint:
+GET /wallet/me/transactions
+
+Description:
+Mengambil daftar transaksi wallet milik user yang sedang login.
+
+Authentication:
+Required (Bearer Token)
+
+Success Response:
+{
+  "content": [
+    {
+      "id": 101,
+      "type": "TOPUP",
+      "amount": 100000,
+      "orderId": null,
+      "createdAt": "2026-02-12T13:05:00"
+    },
+    {
+      "id": 102,
+      "type": "PAYMENT",
+      "amount": 50000,
+      "orderId": 10,
+      "createdAt": "2026-02-12T13:10:00"
+    }
+  ],
+  "page": 1,
+  "size": 10,
+  "totalElements": 12,
+  "totalPages": 2
+}
+
+
+Error Response (Standard Format):
+{
+  "timestamp": "2026-02-12T13:10:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Token invalid",
+  "path": "/wallet/me/transactions"
+}
+
+Possible Errors:
+- 401 Unauthorized
+Kasus:
+Token invalid / expired
+
+- 403 Forbidden
+Kasus:
+Role tidak diizinkan
+
+- 404 Not Found
+Kasus:
+Wallet tidak ditemukan
+
+- 400 Bad Request
+Kasus:
+page < 1
+size <= 0
+
+- 500 Internal Server Error
+Kasus:
+Database error
+
+8. User Verification
+
+Modul ini digunakan untuk proses verifikasi identitas (KYC) user.
+Lifecycle:
+PENDING → APPROVED
+PENDING → REJECTED
+REJECTED → (boleh submit ulang → kembali PENDING)
+
+Enum:
+verification_status = ('PENDING','APPROVED','REJECTED')
+
+   8.1 Submit Verification
+
+Endpoint:
+POST /me/verification
+
+Description:
+Mengirim atau mengajukan ulang dokumen verifikasi identitas.
+
+Authentication:
+Required (Bearer Token)
+
+Authorization:
+CUSTOMER atau DRIVER
+
+Request Header:
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+Request Body:
+| Field        | Type   | Required | Validation       |
+| ------------ | ------ | -------- | ---------------- |
+| documentType | string | Yes      | max 50 karakter  |
+| documentPath | string | Yes      | max 255 karakter |
+contoh:
+{
+  "documentType": "KTP",
+  "documentPath": "/uploads/ktp.jpg"
+}
+userId diambil dari JWT.
+
+Business Rules:
+1. User harus ada dan tidak dalam kondisi soft delete.
+2. Jika belum ada record → INSERT dengan status = PENDING.
+3. Jika status = REJECTED → UPDATE dan set status = PENDING.
+4. Jika status = PENDING → 409 Conflict.
+5. Jika status = APPROVED → 409 Conflict.
+6. Proses dilakukan dalam database transaction.
+
+
+Success Response : 201 Created
+{
+  "userId": 5,
+  "status": "PENDING",
+  "submittedAt": "2026-02-12T14:00:00"
+}
+
+8.2 Get My Verification
+
+Endpoint: GET /me/verification
+Authentication: Required
+
+Success Response 200 OK:
+{
+  "userId": 5,
+  "status": "PENDING",
+  "documentType": "KTP",
+  "documentPath": "/uploads/ktp.jpg",
+  "rejectedReason": null,
+  "verifiedAt": null,
+  "verifiedBy": null,
+  "createdAt": "2026-02-12T14:00:00",
+  "updatedAt": "2026-02-12T14:00:00"
+}
+
+8.3 Admin – List Verifications
+Endpoint:
+GET /admin/verifications
+
+Authentication: Required
+
+Authorization: ADMIN only
+
+Success Response 200 OK:
+{
+  "content": [
+    {
+      "userId": 5,
+      "userName": "Budi",
+      "status": "PENDING",
+      "documentType": "KTP",
+      "createdAt": "2026-02-12T14:00:00"
+    }
+  ],
+  "page": 1,
+  "size": 10,
+  "totalElements": 5,
+  "totalPages": 1
+}
+
+
+8.4 Admin – Approve Verification
+Endpoint:
+PUT /admin/verifications/{userId}/approve
+
+Authentication:
+Required
+
+Authorization:
+ADMIN only
+
+Business Rules:
+1. Verification harus ada.
+2. Status harus PENDING.
+3. Set status = APPROVED.
+4. Set verified_at = NOW().
+5. Set verified_by = adminId (from JWT).
+6. Proses dalam database transaction.
+
+
+Success Response 200 OK:
+{
+  "message": "Verification approved"
+}
+
+8.5 Admin – Reject Verification
+Endpoint:
+PUT /admin/verifications/{userId}/reject
+
+Request Body:
+| Field  | Type   | Required |
+| ------ | ------ | -------- |
+| reason | string | Yes      |
+contoh:
+{
+  "reason": "Dokumen tidak jelas"
+}
+
+Business Rules:
+1. Verification harus ada.
+2. Status harus PENDING.
+3. Set status = REJECTED.
+4. Set rejected_reason.
+5. Set verified_at dan verified_by.
+6. Database transaction.
+
+Success Response 200 Ok:
+{
+  "message": "Verification rejected"
+}
+
+Standard Error Response Format
+Semua endpoint menggunakan format berikut:
+{
+  "timestamp": "2026-02-12T14:10:00",
+  "status": 409,
+  "error": "Conflict",
+  "message": "Verification sudah dalam status APPROVED",
+  "path": "/me/verification"
+}
+
+Error Handling Summary:
+- 400 Bad Request
+Kasus:
+Field kosong
+documentType terlalu panjang
+documentPath terlalu panjang
+reason kosong (untuk reject)
+
+- 401 Unauthorized
+Kasus:
+Token tidak valid
+Token expired
+Tidak mengirim Authorization header
+
+- 403 Forbidden
+Kasus:
+Role bukan ADMIN untuk endpoint admin
+Role tidak diizinkan submit verification
+
+- 404 Not Found
+Kasus:
+User tidak ditemukan
+Verification tidak ditemukan
+User sudah di-soft-delete
+Jika user belum pernah mengajukan verification.
+
+- 409 Conflict
+Kasus:
+Verification masih PENDING
+Verification sudah APPROVED
+Status tidak valid untuk diproses
+
+- 500 Internal Server Error
+Kasus:
+Database error
+Gagal commit transaction
+Unexpected server failure
+
 
 9. App Config
-   9.1 Get Config
 
-Endpoint: GET /app_config/{key}
+Modul ini digunakan untuk menyimpan konfigurasi global sistem
+(seperti limit order, komisi, timeout, dll).
+Nilai config_value disimpan sebagai string dan dikonversi di service layer sesuai kebutuhan.
 
-Response (200 OK):
+9.1 Get Config
+Endpoint: GET /app-config/{key}
 
+Path Variable:
+| Field | Type   | Required | Description |
+| ----- | ------ | -------- | ----------- |
+| key   | string | Yes      | Nama config |
+
+
+Authentication:
+Required (Bearer Token)
+
+Authorization:
+ADMIN atau AUTHENTICATED USER
+(sesuai kebutuhan bisnis)
+
+Business Rules:
+1. Config dengan config_key = {key} harus ada.
+2. config_key bersifat unique.
+3. Jika tidak ditemukan → 404 Not Found.
+4. Proses hanya read-only (tidak ada perubahan data).
+
+Success Response (200 OK):
 {
-"configKey": "max_order_per_day",
-"configValue": "10",
-"description": "Maksimal order per user per hari"
+  "key": "max_order_per_day",
+  "value": "10",
+  "description": "Maksimal order per user per hari",
+  "createdAt": "2026-02-12T14:00:00",
+  "updatedAt": "2026-02-12T14:00:00"
 }
 
-Error Handling:
+Standard Error Response Format
+Semua error menggunakan format berikut (konsisten dengan modul lain):
+{
+  "timestamp": "2026-02-12T14:10:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Config key 'max_order_per_day' not found",
+  "path": "/app-config/max_order_per_day"
+}
 
-404 Not Found → Config key tidak ada
+Error Handling Summary:
+- 400 Bad Request
+Kasus:
+key kosong
+key mengandung karakter tidak valid
 
-500 Internal Server Error → Database error
+- 401 Unauthorized
+Kasus:
+Token tidak dikirim
+Token expired
+Token tidak valid
 
-Catatan Umum:
+- 403 Forbidden
+Kasus:
+User tidak memiliki akses untuk membaca config tertentu
+(misalnya config internal hanya untuk ADMIN)
 
-Semua endpoint menggunakan JSON request/response
+- 404 Not Found
+Kasus:
+Config key tidak ditemukan
 
-Status code: 200 OK / 201 Created / 204 No Content / 400 / 401 / 403 / 404 / 409 / 500
-
-Soft delete diterapkan di beberapa tabel (app_users, orders, dll)
+- 500 Internal Server Error
+Kasus:
+Database error
+Query gagal
+Unexpected server failure
