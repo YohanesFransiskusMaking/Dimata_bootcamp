@@ -131,7 +131,186 @@ Error Handling:
 
 500 Internal Server Error → Database error
 
-1.2 Get User
+1.2 Authentication
+
+1.2.1 Login
+Endpoint: POST /auth/login
+
+Description:
+Melakukan autentikasi user dan menghasilkan Access Token (JWT – RS256) dan Refresh Token.
+
+Authentication : Tidak memerlukan authentication (public endpoint).
+
+Authorization : Tidak memerlukan role.
+
+Request Header:
+Content-Type: application/json
+Accept: application/json
+
+Request Body:
+| Field | Type | Required | Validation |
+| -------- | ------ | -------- | ------------------ |
+| email | string | Yes | format email |
+| password | string | Yes | minimal 6 karakter |
+
+contoh:
+{
+"email": "budi@example.com",
+"password": "secret123"
+}
+
+Business Rules:
+
+1. Email harus terdaftar.
+2. User tidak boleh dalam kondisi soft deleted (deleted_at IS NOT NULL).
+3. Password harus sesuai dengan password_hash (bcrypt).
+4. Access Token ditandatangani menggunakan RSA (RS256).
+5. Access Token berisi:
+   - userId
+   - email
+   - role
+   - issuedAt
+   - expiredAt
+6. Refresh Token:
+
+- Dibuat sebagai random secure string.
+- Disimpan di database.
+- Memiliki masa berlaku (default: 7 hari).
+- Digunakan untuk mendapatkan access token baru.
+
+7. Access Token berlaku singkat (default: 15 menit).
+
+Success Response:
+Content-Type: application/json
+
+Response Body:
+{
+"accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+"refreshToken": "def50200a4b3c...",
+"tokenType": "Bearer",
+"expiresIn": 900,
+"refreshExpiresIn": 604800
+}
+
+Error Response
+Semua error menggunakan format standard berikut:
+{
+"timestamp": "2026-02-11T15:00:00",
+"status": 401,
+"error": "Unauthorized",
+"message": "Email atau password salah",
+"path": "/auth/login"
+}
+
+- 400 Bad Request
+  Kasus:
+  Field wajib kosong
+  Format email tidak valid
+  Password kurang dari 6 karakter
+
+- 401 Unauthorized
+  Kasus:
+  Email tidak ditemukan
+  Password salah
+  User sudah soft deleted
+
+- 500 Internal Server Error
+  Kasus:
+  Database failure
+  Unexpected server error
+
+  1.2.2 Refresh Token
+  Endpoint: POST /auth/refresh
+
+Description:
+Menghasilkan access token baru menggunakan refresh token (dengan mekanisme token rotation).
+
+Authentication : Tidak memerlukan access token.
+Authorization : Tidak memerlukan role.
+
+Request Header:
+Content-Type: application/json
+Accept: application/json
+
+Request Body:
+| Field | Type | Required | Validation |
+| ------------ | ------ | -------- | ------------ |
+| refreshToken | string | Yes | tidak kosong |
+
+contoh:
+{
+"refreshToken": "def50200a4b3c..."
+}
+
+Business Rules:
+Refresh token harus valid dan terdaftar di database.
+Refresh token tidak boleh expired.
+Refresh token tidak boleh revoked.
+Jika valid:
+
+- Buat access token baru.
+- Buat refresh token baru (rotation).
+- Tandai refresh token lama sebagai revoked.
+  Jika refresh token dicurigai reuse (sudah revoked), semua token user dapat dibatalkan (opsional keamanan tinggi).
+
+Success Response : 200 OK
+{
+"accessToken": "new.jwt.token",
+"refreshToken": "new.refresh.token",
+"tokenType": "Bearer",
+"expiresIn": 900,
+"refreshExpiresIn": 604800
+}
+
+Error Response
+Standar format:
+{
+"timestamp": "2026-02-11T15:00:00",
+"status": 401,
+"error": "Unauthorized",
+"message": "Refresh token tidak valid",
+"path": "/auth/refresh"
+}
+
+- 401 Unauthorized
+  Kasus:
+  Refresh token tidak valid
+  Refresh token expired
+  Refresh token revoked
+
+- 500 Internal Server Error
+  Database failure / unexpected error.
+
+  1.2.3 Logout
+
+Endpoint: POST /auth/logout
+
+Description:
+Mencabut refresh token sehingga tidak dapat digunakan kembali.
+
+Authentication : Tidak memerlukan access token.
+Authorization : Tidak memerlukan role.
+
+Request Body:
+{
+"refreshToken": "def50200a4b3c..."
+}
+
+Business Rules:
+Refresh token harus ada di database.
+Refresh token akan ditandai sebagai revoked atau dihapus.
+Setelah logout, refresh token tidak dapat digunakan kembali.
+
+Success Response:
+{
+"message": "Logout berhasil"
+}
+
+Error Responses:
+401 Unauthorized → Refresh token tidak valid
+500 Internal Server Error → Database error
+
+1.3 Get User
 
 Endpoint: GET /users/{id}
 
@@ -231,7 +410,7 @@ Error Handling:
 
 500 Internal Server Error → Database error
 
-1.3 Update User
+1.4 Update User
 
 Endpoint: PUT /users/{id}
 Description: Mengupdate data user berdasarkan ID.
@@ -406,7 +585,7 @@ Error Handling:
 
 500 Internal Server Error → Database error
 
-1.4 Delete User (Soft Delete)
+1.5 Delete User (Soft Delete)
 
 Endpoint: DELETE /users/{id}
 Description:
@@ -1402,23 +1581,24 @@ Content-Type: application/json
 Authorization: Bearer <access_token>
 
 Request Body:
-| Field      | Type    | Required | Validation                   |
+| Field | Type | Required | Validation |
 | ---------- | ------- | -------- | ---------------------------- |
-| orderId    | integer | Yes      | harus ada & status COMPLETED |
-| revieweeId | integer | Yes      | harus terlibat dalam order   |
-| rating     | integer | Yes      | 1–5                          |
-| comment    | string  | No       | max 1000 karakter            |
+| orderId | integer | Yes | harus ada & status COMPLETED |
+| revieweeId | integer | Yes | harus terlibat dalam order |
+| rating | integer | Yes | 1–5 |
+| comment | string | No | max 1000 karakter |
 
 contoh:
 {
-  "orderId": 10,
-  "revieweeId": 5,
-  "rating": 5,
-  "comment": "Driver sangat ramah dan tepat waktu"
+"orderId": 10,
+"revieweeId": 5,
+"rating": 5,
+"comment": "Driver sangat ramah dan tepat waktu"
 }
 reviewerId diambil dari JWT (bukan dari request body).
 
 Business Rules:
+
 1. Order harus ada.
 2. Order.status harus COMPLETED.
 3. Reviewer harus terlibat dalam order.
@@ -1435,13 +1615,13 @@ Location: /reviews/{id}
 
 Response Body:
 {
-  "id": 15,
-  "orderId": 10,
-  "reviewerId": 3,
-  "revieweeId": 5,
-  "rating": 5,
-  "comment": "Driver sangat ramah dan tepat waktu",
-  "createdAt": "2026-02-12T12:30:00"
+"id": 15,
+"orderId": 10,
+"reviewerId": 3,
+"revieweeId": 5,
+"rating": 5,
+"comment": "Driver sangat ramah dan tepat waktu",
+"createdAt": "2026-02-12T12:30:00"
 }
 
 6.2 Get Reviews by User
@@ -1457,70 +1637,68 @@ Optional (atau Required jika ingin proteksi).
 
 Success Response:
 {
-  "content": [
-    {
-      "id": 15,
-      "orderId": 10,
-      "reviewerId": 3,
-      "rating": 5,
-      "comment": "Driver sangat ramah",
-      "createdAt": "2026-02-12T12:30:00"
-    }
-  ],
-  "page": 1,
-  "size": 10,
-  "totalElements": 25,
-  "totalPages": 3
+"content": [
+{
+"id": 15,
+"orderId": 10,
+"reviewerId": 3,
+"rating": 5,
+"comment": "Driver sangat ramah",
+"createdAt": "2026-02-12T12:30:00"
 }
-
+],
+"page": 1,
+"size": 10,
+"totalElements": 25,
+"totalPages": 3
+}
 
 Error Response (Standard Format):
 {
-  "timestamp": "2026-02-12T12:30:00",
-  "status": 409,
-  "error": "Conflict",
-  "message": "Review sudah pernah dibuat untuk order ini",
-  "path": "/reviews"
+"timestamp": "2026-02-12T12:30:00",
+"status": 409,
+"error": "Conflict",
+"message": "Review sudah pernah dibuat untuk order ini",
+"path": "/reviews"
 }
 
-
 - 400 Bad Request
-Kasus:
-Rating < 1 atau > 5
-orderId kosong
-revieweeId kosong
-Reviewer dan reviewee sama
+  Kasus:
+  Rating < 1 atau > 5
+  orderId kosong
+  revieweeId kosong
+  Reviewer dan reviewee sama
 
 - 401 Unauthorized
-Kasus:
-Token invalid / expired
+  Kasus:
+  Token invalid / expired
 
 - 403 Forbidden
-Kasus:
-User bukan bagian dari order
-Role tidak diizinkan membuat review
+  Kasus:
+  User bukan bagian dari order
+  Role tidak diizinkan membuat review
 
 - 404 Not Found
-Kasus:
-Order tidak ditemukan
-Reviewee tidak ditemukan
+  Kasus:
+  Order tidak ditemukan
+  Reviewee tidak ditemukan
 
 - 409 Conflict
-Kasus:
-Order belum COMPLETED
-Review sudah pernah dibuat
+  Kasus:
+  Order belum COMPLETED
+  Review sudah pernah dibuat
 
 - 404 Not Found
   Kasus:
   User tidak ditemukan
 
 - 500 Internal Server Error
-Kasus:
-Database failure
-Unexpected server error
+  Kasus:
+  Database failure
+  Unexpected server error
 
 7. Wallet & Transactions
-7.1 Get My Wallet
+   7.1 Get My Wallet
 
 Endpoint:
 GET /wallet/me
@@ -1536,42 +1714,42 @@ CUSTOMER atau DRIVER
 
 Success Response : 200 Ok
 {
-  "userId": 5,
-  "balance": 150000,
-  "updatedAt": "2026-02-12T13:00:00"
+"userId": 5,
+"balance": 150000,
+"updatedAt": "2026-02-12T13:00:00"
 }
 
 Error Response (Standard Format):
 {
-  "timestamp": "2026-02-12T13:00:00",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Wallet tidak ditemukan",
-  "path": "/wallet/me"
+"timestamp": "2026-02-12T13:00:00",
+"status": 404,
+"error": "Not Found",
+"message": "Wallet tidak ditemukan",
+"path": "/wallet/me"
 }
 
 Possible Errors:
+
 - 401 Unauthorized
-Kasus:
-Token tidak valid
-Token expired
-Tidak mengirim Authorization header
+  Kasus:
+  Token tidak valid
+  Token expired
+  Tidak mengirim Authorization header
 
 - 403 Forbidden
-Kasus:
-Role bukan CUSTOMER atau DRIVER
+  Kasus:
+  Role bukan CUSTOMER atau DRIVER
 
 - 404 Not Found
-Kasus:
-Wallet belum dibuat untuk user tersebut
+  Kasus:
+  Wallet belum dibuat untuk user tersebut
 
 - 500 Internal Server Error
-Kasus:
-Database error
-Unexpected server failure
+  Kasus:
+  Database error
+  Unexpected server failure
 
-
-7.2 Topup Wallet
+  7.2 Topup Wallet
 
 Endpoint:
 POST /wallet/topup
@@ -1590,15 +1768,16 @@ Content-Type: application/json
 Authorization: Bearer <access_token>
 
 Request Body:
-| Field  | Type   | Required | Validation |
+| Field | Type | Required | Validation |
 | ------ | ------ | -------- | ---------- |
-| amount | number | Yes      | > 0        |
+| amount | number | Yes | > 0 |
 Contoh:
 {
-    "amount" : 100000
+"amount" : 100000
 }
 
 Business Rules:
+
 1. Wallet harus ada.
 2. Amount harus lebih dari 0.
 3. Topup diproses dalam database transaction.
@@ -1607,47 +1786,48 @@ Business Rules:
 
 Success Response (201 Created):
 {
-  "walletId": 5,
-  "type": "TOPUP",
-  "amount": 100000,
-  "balanceAfter": 250000,
-  "createdAt": "2026-02-12T13:05:00"
+"walletId": 5,
+"type": "TOPUP",
+"amount": 100000,
+"balanceAfter": 250000,
+"createdAt": "2026-02-12T13:05:00"
 }
 
 Error Response (Standard Format):
 {
-  "timestamp": "2026-02-12T13:05:00",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Amount harus lebih dari 0",
-  "path": "/wallet/topup"
+"timestamp": "2026-02-12T13:05:00",
+"status": 400,
+"error": "Bad Request",
+"message": "Amount harus lebih dari 0",
+"path": "/wallet/topup"
 }
 
 Possible Errors:
+
 - 400 Bad Request
-Kasus:
-Amount kosong
-Amount <= 0
-Format number salah
+  Kasus:
+  Amount kosong
+  Amount <= 0
+  Format number salah
 
 - 401 Unauthorized
-Kasus:
-Token invalid / expired
+  Kasus:
+  Token invalid / expired
 
 - 403 Forbidden
-Kasus:
-Role tidak diizinkan
+  Kasus:
+  Role tidak diizinkan
 
 - 404 Not Found
-Kasus:
-Wallet tidak ditemukan
+  Kasus:
+  Wallet tidak ditemukan
 
 - 500 Internal Server Error
-Kasus:
-Database error
-Gagal commit transaction
+  Kasus:
+  Database error
+  Gagal commit transaction
 
-7.3 Get My Wallet Transactions
+  7.3 Get My Wallet Transactions
 
 Endpoint:
 GET /wallet/me/transactions
@@ -1660,59 +1840,59 @@ Required (Bearer Token)
 
 Success Response:
 {
-  "content": [
-    {
-      "id": 101,
-      "type": "TOPUP",
-      "amount": 100000,
-      "orderId": null,
-      "createdAt": "2026-02-12T13:05:00"
-    },
-    {
-      "id": 102,
-      "type": "PAYMENT",
-      "amount": 50000,
-      "orderId": 10,
-      "createdAt": "2026-02-12T13:10:00"
-    }
-  ],
-  "page": 1,
-  "size": 10,
-  "totalElements": 12,
-  "totalPages": 2
+"content": [
+{
+"id": 101,
+"type": "TOPUP",
+"amount": 100000,
+"orderId": null,
+"createdAt": "2026-02-12T13:05:00"
+},
+{
+"id": 102,
+"type": "PAYMENT",
+"amount": 50000,
+"orderId": 10,
+"createdAt": "2026-02-12T13:10:00"
 }
-
+],
+"page": 1,
+"size": 10,
+"totalElements": 12,
+"totalPages": 2
+}
 
 Error Response (Standard Format):
 {
-  "timestamp": "2026-02-12T13:10:00",
-  "status": 401,
-  "error": "Unauthorized",
-  "message": "Token invalid",
-  "path": "/wallet/me/transactions"
+"timestamp": "2026-02-12T13:10:00",
+"status": 401,
+"error": "Unauthorized",
+"message": "Token invalid",
+"path": "/wallet/me/transactions"
 }
 
 Possible Errors:
+
 - 401 Unauthorized
-Kasus:
-Token invalid / expired
+  Kasus:
+  Token invalid / expired
 
 - 403 Forbidden
-Kasus:
-Role tidak diizinkan
+  Kasus:
+  Role tidak diizinkan
 
 - 404 Not Found
-Kasus:
-Wallet tidak ditemukan
+  Kasus:
+  Wallet tidak ditemukan
 
 - 400 Bad Request
-Kasus:
-page < 1
-size <= 0
+  Kasus:
+  page < 1
+  size <= 0
 
 - 500 Internal Server Error
-Kasus:
-Database error
+  Kasus:
+  Database error
 
 8. User Verification
 
@@ -1725,7 +1905,7 @@ REJECTED → (boleh submit ulang → kembali PENDING)
 Enum:
 verification_status = ('PENDING','APPROVED','REJECTED')
 
-   8.1 Submit Verification
+8.1 Submit Verification
 
 Endpoint:
 POST /me/verification
@@ -1744,18 +1924,19 @@ Content-Type: application/json
 Authorization: Bearer <access_token>
 
 Request Body:
-| Field        | Type   | Required | Validation       |
+| Field | Type | Required | Validation |
 | ------------ | ------ | -------- | ---------------- |
-| documentType | string | Yes      | max 50 karakter  |
-| documentPath | string | Yes      | max 255 karakter |
+| documentType | string | Yes | max 50 karakter |
+| documentPath | string | Yes | max 255 karakter |
 contoh:
 {
-  "documentType": "KTP",
-  "documentPath": "/uploads/ktp.jpg"
+"documentType": "KTP",
+"documentPath": "/uploads/ktp.jpg"
 }
 userId diambil dari JWT.
 
 Business Rules:
+
 1. User harus ada dan tidak dalam kondisi soft delete.
 2. Jika belum ada record → INSERT dengan status = PENDING.
 3. Jika status = REJECTED → UPDATE dan set status = PENDING.
@@ -1763,12 +1944,11 @@ Business Rules:
 5. Jika status = APPROVED → 409 Conflict.
 6. Proses dilakukan dalam database transaction.
 
-
 Success Response : 201 Created
 {
-  "userId": 5,
-  "status": "PENDING",
-  "submittedAt": "2026-02-12T14:00:00"
+"userId": 5,
+"status": "PENDING",
+"submittedAt": "2026-02-12T14:00:00"
 }
 
 8.2 Get My Verification
@@ -1778,15 +1958,15 @@ Authentication: Required
 
 Success Response 200 OK:
 {
-  "userId": 5,
-  "status": "PENDING",
-  "documentType": "KTP",
-  "documentPath": "/uploads/ktp.jpg",
-  "rejectedReason": null,
-  "verifiedAt": null,
-  "verifiedBy": null,
-  "createdAt": "2026-02-12T14:00:00",
-  "updatedAt": "2026-02-12T14:00:00"
+"userId": 5,
+"status": "PENDING",
+"documentType": "KTP",
+"documentPath": "/uploads/ktp.jpg",
+"rejectedReason": null,
+"verifiedAt": null,
+"verifiedBy": null,
+"createdAt": "2026-02-12T14:00:00",
+"updatedAt": "2026-02-12T14:00:00"
 }
 
 8.3 Admin – List Verifications
@@ -1799,21 +1979,20 @@ Authorization: ADMIN only
 
 Success Response 200 OK:
 {
-  "content": [
-    {
-      "userId": 5,
-      "userName": "Budi",
-      "status": "PENDING",
-      "documentType": "KTP",
-      "createdAt": "2026-02-12T14:00:00"
-    }
-  ],
-  "page": 1,
-  "size": 10,
-  "totalElements": 5,
-  "totalPages": 1
+"content": [
+{
+"userId": 5,
+"userName": "Budi",
+"status": "PENDING",
+"documentType": "KTP",
+"createdAt": "2026-02-12T14:00:00"
 }
-
+],
+"page": 1,
+"size": 10,
+"totalElements": 5,
+"totalPages": 1
+}
 
 8.4 Admin – Approve Verification
 Endpoint:
@@ -1826,6 +2005,7 @@ Authorization:
 ADMIN only
 
 Business Rules:
+
 1. Verification harus ada.
 2. Status harus PENDING.
 3. Set status = APPROVED.
@@ -1833,10 +2013,9 @@ Business Rules:
 5. Set verified_by = adminId (from JWT).
 6. Proses dalam database transaction.
 
-
 Success Response 200 OK:
 {
-  "message": "Verification approved"
+"message": "Verification approved"
 }
 
 8.5 Admin – Reject Verification
@@ -1844,15 +2023,16 @@ Endpoint:
 PUT /admin/verifications/{userId}/reject
 
 Request Body:
-| Field  | Type   | Required |
+| Field | Type | Required |
 | ------ | ------ | -------- |
-| reason | string | Yes      |
+| reason | string | Yes |
 contoh:
 {
-  "reason": "Dokumen tidak jelas"
+"reason": "Dokumen tidak jelas"
 }
 
 Business Rules:
+
 1. Verification harus ada.
 2. Status harus PENDING.
 3. Set status = REJECTED.
@@ -1862,57 +2042,57 @@ Business Rules:
 
 Success Response 200 Ok:
 {
-  "message": "Verification rejected"
+"message": "Verification rejected"
 }
 
 Standard Error Response Format
 Semua endpoint menggunakan format berikut:
 {
-  "timestamp": "2026-02-12T14:10:00",
-  "status": 409,
-  "error": "Conflict",
-  "message": "Verification sudah dalam status APPROVED",
-  "path": "/me/verification"
+"timestamp": "2026-02-12T14:10:00",
+"status": 409,
+"error": "Conflict",
+"message": "Verification sudah dalam status APPROVED",
+"path": "/me/verification"
 }
 
 Error Handling Summary:
+
 - 400 Bad Request
-Kasus:
-Field kosong
-documentType terlalu panjang
-documentPath terlalu panjang
-reason kosong (untuk reject)
+  Kasus:
+  Field kosong
+  documentType terlalu panjang
+  documentPath terlalu panjang
+  reason kosong (untuk reject)
 
 - 401 Unauthorized
-Kasus:
-Token tidak valid
-Token expired
-Tidak mengirim Authorization header
+  Kasus:
+  Token tidak valid
+  Token expired
+  Tidak mengirim Authorization header
 
 - 403 Forbidden
-Kasus:
-Role bukan ADMIN untuk endpoint admin
-Role tidak diizinkan submit verification
+  Kasus:
+  Role bukan ADMIN untuk endpoint admin
+  Role tidak diizinkan submit verification
 
 - 404 Not Found
-Kasus:
-User tidak ditemukan
-Verification tidak ditemukan
-User sudah di-soft-delete
-Jika user belum pernah mengajukan verification.
+  Kasus:
+  User tidak ditemukan
+  Verification tidak ditemukan
+  User sudah di-soft-delete
+  Jika user belum pernah mengajukan verification.
 
 - 409 Conflict
-Kasus:
-Verification masih PENDING
-Verification sudah APPROVED
-Status tidak valid untuk diproses
+  Kasus:
+  Verification masih PENDING
+  Verification sudah APPROVED
+  Status tidak valid untuk diproses
 
 - 500 Internal Server Error
-Kasus:
-Database error
-Gagal commit transaction
-Unexpected server failure
-
+  Kasus:
+  Database error
+  Gagal commit transaction
+  Unexpected server failure
 
 9. App Config
 
@@ -1924,10 +2104,9 @@ Nilai config_value disimpan sebagai string dan dikonversi di service layer sesua
 Endpoint: GET /app-config/{key}
 
 Path Variable:
-| Field | Type   | Required | Description |
+| Field | Type | Required | Description |
 | ----- | ------ | -------- | ----------- |
-| key   | string | Yes      | Nama config |
-
+| key | string | Yes | Nama config |
 
 Authentication:
 Required (Bearer Token)
@@ -1937,6 +2116,7 @@ ADMIN atau AUTHENTICATED USER
 (sesuai kebutuhan bisnis)
 
 Business Rules:
+
 1. Config dengan config_key = {key} harus ada.
 2. config_key bersifat unique.
 3. Jika tidak ditemukan → 404 Not Found.
@@ -1944,46 +2124,47 @@ Business Rules:
 
 Success Response (200 OK):
 {
-  "key": "max_order_per_day",
-  "value": "10",
-  "description": "Maksimal order per user per hari",
-  "createdAt": "2026-02-12T14:00:00",
-  "updatedAt": "2026-02-12T14:00:00"
+"key": "max_order_per_day",
+"value": "10",
+"description": "Maksimal order per user per hari",
+"createdAt": "2026-02-12T14:00:00",
+"updatedAt": "2026-02-12T14:00:00"
 }
 
 Standard Error Response Format
 Semua error menggunakan format berikut (konsisten dengan modul lain):
 {
-  "timestamp": "2026-02-12T14:10:00",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Config key 'max_order_per_day' not found",
-  "path": "/app-config/max_order_per_day"
+"timestamp": "2026-02-12T14:10:00",
+"status": 404,
+"error": "Not Found",
+"message": "Config key 'max_order_per_day' not found",
+"path": "/app-config/max_order_per_day"
 }
 
 Error Handling Summary:
+
 - 400 Bad Request
-Kasus:
-key kosong
-key mengandung karakter tidak valid
+  Kasus:
+  key kosong
+  key mengandung karakter tidak valid
 
 - 401 Unauthorized
-Kasus:
-Token tidak dikirim
-Token expired
-Token tidak valid
+  Kasus:
+  Token tidak dikirim
+  Token expired
+  Token tidak valid
 
 - 403 Forbidden
-Kasus:
-User tidak memiliki akses untuk membaca config tertentu
-(misalnya config internal hanya untuk ADMIN)
+  Kasus:
+  User tidak memiliki akses untuk membaca config tertentu
+  (misalnya config internal hanya untuk ADMIN)
 
 - 404 Not Found
-Kasus:
-Config key tidak ditemukan
+  Kasus:
+  Config key tidak ditemukan
 
 - 500 Internal Server Error
-Kasus:
-Database error
-Query gagal
-Unexpected server failure
+  Kasus:
+  Database error
+  Query gagal
+  Unexpected server failure
