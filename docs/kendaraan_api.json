@@ -1,0 +1,98 @@
+{
+  "info": {
+    "name": "Taksol App - Kendaraan & Jenis Kendaraan API",
+    "_postman_id": "kendaraan-12345-67890",
+    "description": "Collection API untuk Taksol App - Kendaraan & Jenis Kendaraan",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Jenis Kendaraan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer <access_token>"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"namaJenis\": \"Mobil\",\n  \"kapasitas\": 4,\n  \"tarifPerKm\": 5000,\n  \"deskripsi\": \"Mobil standar\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/jenis_kendaraan",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["jenis_kendaraan"]
+        },
+        "description": "Menambahkan jenis kendaraan baru yang akan digunakan dalam sistem"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "body": "{\n  \"id\": 1,\n  \"namaJenis\": \"Mobil\",\n  \"kapasitas\": 4,\n  \"tarifPerKm\": 5000,\n  \"deskripsi\": \"Mobil standar\",\n  \"createdAt\": \"2026-02-12T10:00:00\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-12T10:00:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Kapasitas harus lebih dari 0\",\n  \"path\": \"/jenis_kendaraan\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-12T10:00:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"namaJenis sudah terdaftar\",\n  \"path\": \"/jenis_kendaraan\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create Kendaraan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer <access_token>"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"platNomor\": \"DK1234AB\",\n  \"jenisKendaraanId\": 1,\n  \"driverId\": 2,\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/kendaraan",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["kendaraan"]
+        },
+        "description": "Menambahkan kendaraan baru yang terhubung dengan driver tertentu"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "body": "{\n  \"id\": 2,\n  \"platNomor\": \"DK1234AB\",\n  \"jenisKendaraanId\": 1,\n  \"driverId\": 2,\n  \"status\": \"ACTIVE\",\n  \"createdAt\": \"2026-02-12T10:10:00\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-12T10:10:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Field wajib kosong atau status tidak valid\",\n  \"path\": \"/kendaraan\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-12T10:10:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Jenis kendaraan atau Driver tidak ditemukan\",\n  \"path\": \"/kendaraan\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-12T10:10:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"Plat nomor sudah terdaftar atau driver sudah memiliki kendaraan aktif\",\n  \"path\": \"/kendaraan\"\n}"
+        }
+      ]
+    }
+  ]
+}

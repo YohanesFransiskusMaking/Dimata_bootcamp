@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Taksol - Order Detail</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet"/>
+
+<style>
+body {
+  background: #f8f9fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.container {
+  max-width: 700px;
+  padding-top: 30px;
+  padding-bottom: 100px;
+}
+
+.order-card {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.status-badge {
+  font-size: 14px;
+  padding: 8px 15px;
+  border-radius: 20px;
+}
+
+.timeline-step {
+  margin-bottom: 8px;
+}
+
+.active-step {
+  font-weight: bold;
+  color: #0066cc;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="text-center mb-4">
+    <h4 class="fw-bold"><i class="bi bi-receipt"></i> Order Detail</h4>
+  </div>
+
+  <div class="order-card">
+
+    <!-- ORDER INFO -->
+    <div class="mb-3" id="orderInfo"></div>
+
+    <!-- STATUS -->
+    <div class="mb-3 text-center">
+      <span id="statusBadge" class="badge bg-warning status-badge">
+        Searching Driver
+      </span>
+    </div>
+
+    <!-- DRIVER INFO -->
+    <div id="driverSection" class="d-none">
+      <hr />
+      <h6 class="fw-bold">Driver Info</h6>
+      <div><strong>Name:</strong> Antonio Silva</div>
+      <div><strong>Vehicle:</strong> Toyota Avanza</div>
+      <div><strong>Plate:</strong> TL-123-AB</div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline mt-4">
+      <div id="step1" class="timeline-step active-step">🔎 Searching Driver</div>
+      <div id="step2" class="timeline-step">🚕 Driver Assigned</div>
+      <div id="step3" class="timeline-step">📍 Driver On The Way</div>
+      <div id="step4" class="timeline-step">🛣️ In Progress</div>
+      <div id="step5" class="timeline-step">✅ Completed</div>
+    </div>
+
+    <button id="cancelBtn" class="btn btn-danger w-100 mt-4 rounded-pill">
+      Cancel Order
+    </button>
+
+  </div>
+</div>
+
+<script>
+
+// ===== LOAD ORDER FROM LOCALSTORAGE =====
+const order = JSON.parse(localStorage.getItem("currentOrder"));
+
+if (!order) {
+  window.location.href = "otw-taksol.html";
+}
+
+// Tampilkan data order
+document.getElementById("orderInfo").innerHTML = `
+  <div><strong>Order ID:</strong> ${order.id}</div>
+  <div><strong>Pickup:</strong> ${order.pickup}</div>
+  <div><strong>Destination:</strong> ${order.destination}</div>
+  <div><strong>Detail Location:</strong> ${order.detailLocation || "-"}</div>
+  <div><strong>WhatsApp:</strong> ${order.whatsapp}</div>
+  <div><strong>Distance:</strong> ${order.distance}</div>
+  <div><strong>Price:</strong> ${order.price}</div>
+`;
+
+// ===== STATUS SYSTEM =====
+const statusBadge = document.getElementById("statusBadge");
+const driverSection = document.getElementById("driverSection");
+const cancelBtn = document.getElementById("cancelBtn");
+
+let currentStep = 1;
+
+function updateStatus() {
+  document.querySelectorAll(".timeline-step").forEach((el) => {
+    el.classList.remove("active-step");
+  });
+
+  document.getElementById("step" + currentStep)
+    .classList.add("active-step");
+
+  switch (currentStep) {
+    case 1:
+      statusBadge.innerText = "Searching Driver";
+      statusBadge.className = "badge bg-warning status-badge";
+      break;
+
+    case 2:
+      statusBadge.innerText = "Driver Assigned";
+      statusBadge.className = "badge bg-primary status-badge";
+      driverSection.classList.remove("d-none");
+      break;
+
+    case 3:
+      statusBadge.innerText = "Driver On The Way";
+      statusBadge.className = "badge bg-info status-badge";
+      break;
+
+    case 4:
+      statusBadge.innerText = "In Progress";
+      statusBadge.className = "badge bg-dark status-badge";
+      break;
+
+    case 5:
+      statusBadge.innerText = "Completed";
+      statusBadge.className = "badge bg-success status-badge";
+      cancelBtn.classList.add("d-none");
+      break;
+  }
+}
+
+// simulasi update tiap 5 detik
+const interval = setInterval(() => {
+  if (currentStep < 5) {
+    currentStep++;
+    updateStatus();
+  } else {
+    clearInterval(interval);
+  }
+}, 5000);
+
+// cancel
+cancelBtn.addEventListener("click", function () {
+  statusBadge.innerText = "Cancelled";
+  statusBadge.className = "badge bg-danger status-badge";
+  clearInterval(interval);
+  cancelBtn.classList.add("d-none");
+});
+
+</script>
+
+</body>
+</html>

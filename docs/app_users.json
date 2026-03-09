@@ -1,0 +1,245 @@
+{
+  "info": {
+    "name": "App Users API",
+    "_postman_id": "12345-abcde-67890",
+    "description": "Collection API untuk App Users",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nama\": \"Budi\",\n  \"email\": \"budi@example.com\",\n  \"noHp\": \"081234567890\",\n  \"password\": \"secret123\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/users",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["users"]
+        },
+        "description": "Menambahkan user baru ke sistem"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "originalRequest": {},
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Location",
+              "value": "/users/1"
+            }
+          ],
+          "body": "{\n  \"id\": 1,\n  \"nama\": \"Budi\",\n  \"email\": \"budi@example.com\",\n  \"noHp\": \"081234567890\",\n  \"createdAt\": \"2026-02-11T15:00:00\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Email format tidak valid\",\n  \"path\": \"/users\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"Email sudah terdaftar\",\n  \"path\": \"/users\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Terjadi kesalahan pada server\",\n  \"path\": \"/users\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get User",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <jwt_token>" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "https://mock-server-url/users/{{id}}",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["users", "{{id}}"]
+        },
+        "description": "Mengambil detail user berdasarkan ID"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"id\": 1,\n  \"nama\": \"Budi\",\n  \"email\": \"budi@example.com\",\n  \"noHp\": \"081234567890\",\n  \"createdAt\": \"2026-02-11T15:00:00\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token tidak valid\",\n  \"path\": \"/users/1\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"Anda tidak memiliki akses ke resource ini\",\n  \"path\": \"/users/2\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"User tidak ditemukan\",\n  \"path\": \"/users/99\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Terjadi kesalahan pada server\",\n  \"path\": \"/users/1\"\n}"
+        }
+      ]
+    },
+     {
+      "name": "Update User",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Authorization", "value": "Bearer <jwt_token>"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Accept", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nama\": \"budi\",\n  \"email\": \"budi@example.com\",\n  \"noHp\": \"081234567890\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/users/{{id}}",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["users", "{{id}}"]
+        },
+        "description": "Mengupdate data user berdasarkan ID"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {"key": "Content-Type", "value": "application/json"}
+          ],
+          "body": "{\n  \"id\": 1,\n  \"nama\": \"budi\",\n  \"email\": \"budi@example.com\",\n  \"noHp\": \"081234567890\",\n  \"updatedAt\": \"2026-02-11T15:10:00\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:10:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Email format tidak valid\",\n  \"path\": \"/users/1\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:10:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token tidak valid atau sudah expired\",\n  \"path\": \"/users/1\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:10:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"Anda tidak memiliki akses untuk mengupdate user ini\",\n  \"path\": \"/users/2\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:10:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"User tidak ditemukan\",\n  \"path\": \"/users/99\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:10:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"Email sudah terdaftar\",\n  \"path\": \"/users/1\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:10:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Terjadi kesalahan pada server\",\n  \"path\": \"/users/1\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Delete User",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "Authorization", "value": "Bearer <jwt_token>"},
+          {"key": "Accept", "value": "application/json"}
+        ],
+        "url": {
+          "raw": "https://mock-server-url/users/{{id}}",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["users", "{{id}}"]
+        },
+        "description": "Melakukan soft delete terhadap user (mengisi field deleted_at tanpa menghapus data secara fisik)"
+      },
+      "response": [
+        {
+          "name": "204 No Content",
+          "status": "No Content",
+          "code": 204,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {"key": "Content-Type", "value": "application/json"}
+          ],
+          "body": ""
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:20:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"User tidak ditemukan\",\n  \"path\": \"/users/10\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:20:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token tidak valid atau expired\",\n  \"path\": \"/users/10\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:20:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"User tidak boleh menghapus user lain\",\n  \"path\": \"/users/10\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:20:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Database error\",\n  \"path\": \"/users/10\"\n}"
+        }
+      ]
+    }
+  ]
+}

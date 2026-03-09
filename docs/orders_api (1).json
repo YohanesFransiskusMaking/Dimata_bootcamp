@@ -1,0 +1,187 @@
+{
+  "info": {
+    "name": "Taksol App - Orders & Order Details API",
+    "_postman_id": "orders-12345-67890",
+    "description": "Collection API untuk Taksol App - Orders & Order Details",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lokasiJemput\": \"Denpasar\",\n  \"lokasiTujuan\": \"Ubud\",\n  \"assignedDriverId\": 2\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/orders",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["orders"]
+        },
+        "description": "Membuat order baru oleh customer untuk perjalanan"
+      },
+      "response": [
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\"timestamp\":\"2026-02-12T11:00:00\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"Field wajib kosong atau format data tidak valid\",\"path\":\"/orders\"}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\"timestamp\":\"2026-02-12T11:00:00\",\"status\":404,\"error\":\"Not Found\",\"message\":\"Driver tidak ditemukan\",\"path\":\"/orders\"}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\"timestamp\":\"2026-02-12T11:00:00\",\"status\":409,\"error\":\"Conflict\",\"message\":\"Driver sedang dalam order aktif\",\"path\":\"/orders\"}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\"timestamp\":\"2026-02-12T11:00:00\",\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Token tidak valid\",\"path\":\"/orders\"}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\"timestamp\":\"2026-02-12T11:00:00\",\"status\":403,\"error\":\"Forbidden\",\"message\":\"Role bukan CUSTOMER\",\"path\":\"/orders\"}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\"timestamp\":\"2026-02-12T11:00:00\",\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"Database failure\",\"path\":\"/orders\"}"
+        }
+      ]
+    },
+    {
+      "name": "Create Order Detail",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": 1,\n  \"jenisKendaraanId\": 1,\n  \"kendaraanId\": 2,\n  \"jarakKm\": 10,\n  \"tarifPerKm\": 5000,\n  \"subtotal\": 50000\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/order_details",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["order_details"]
+        },
+        "description": "Menambahkan detail order seperti jenis kendaraan, kendaraan yang digunakan, jarak, dan tarif"
+      },
+      "response": [
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\"timestamp\":\"2026-02-12T11:05:00\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"Field kosong atau subtotal tidak sesuai\",\"path\":\"/order_details\"}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\"timestamp\":\"2026-02-12T11:05:00\",\"status\":404,\"error\":\"Not Found\",\"message\":\"Order, jenis kendaraan, atau kendaraan tidak ditemukan\",\"path\":\"/order_details\"}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\"timestamp\":\"2026-02-12T11:05:00\",\"status\":409,\"error\":\"Conflict\",\"message\":\"Order detail sudah ada atau order sudah selesai\",\"path\":\"/order_details\"}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\"timestamp\":\"2026-02-12T11:05:00\",\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Token invalid\",\"path\":\"/order_details\"}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\"timestamp\":\"2026-02-12T11:05:00\",\"status\":403,\"error\":\"Forbidden\",\"message\":\"Tidak berhak mengakses order\",\"path\":\"/order_details\"}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\"timestamp\":\"2026-02-12T11:05:00\",\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"Database failure\",\"path\":\"/order_details\"}"
+        }
+      ]
+    },
+    {
+      "name": "Update Order Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/orders/1/status",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["orders", "1", "status"]
+        },
+        "description": "Mengubah status order sesuai lifecycle sistem"
+      },
+      "response": [
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\"timestamp\":\"2026-02-12T11:20:00\",\"status\":400,\"error\":\"Bad Request\",\"message\":\"Transisi status tidak valid\",\"path\":\"/orders/1/status\"}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\"timestamp\":\"2026-02-12T11:20:00\",\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Token invalid atau expired\",\"path\":\"/orders/1/status\"}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\"timestamp\":\"2026-02-12T11:20:00\",\"status\":403,\"error\":\"Forbidden\",\"message\":\"Role tidak memiliki hak akses atau mencoba ubah order orang lain\",\"path\":\"/orders/1/status\"}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\"timestamp\":\"2026-02-12T11:20:00\",\"status\":404,\"error\":\"Not Found\",\"message\":\"Order tidak ditemukan\",\"path\":\"/orders/1/status\"}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\"timestamp\":\"2026-02-12T11:20:00\",\"status\":409,\"error\":\"Conflict\",\"message\":\"Order sedang diproses orang lain atau sudah ACCEPTED\",\"path\":\"/orders/1/status\"}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\"timestamp\":\"2026-02-12T11:20:00\",\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"Gagal insert ke order_status_history atau database error\",\"path\":\"/orders/1/status\"}"
+        }
+      ]
+    }
+  ]
+}

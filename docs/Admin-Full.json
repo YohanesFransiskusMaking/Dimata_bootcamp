@@ -1,0 +1,315 @@
+{
+  "info": {
+    "name": "ADMIN",
+    "_postman_id": "admin-final-v3",
+    "description": "Admin Endpoints - Fully Synced With Quarkus Resource",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "admin_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "ADMIN - Drivers",
+      "item": [
+        {
+          "name": "Get All Drivers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/drivers"
+          }
+        },
+        {
+          "name": "Get Pending Drivers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/drivers/pending"
+          }
+        },
+        {
+          "name": "Approve Driver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/drivers/{{userId}}/approve"
+          }
+        },
+        {
+          "name": "Reject Driver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Dokumen tidak valid\"\n}"
+            },
+            "url": "{{base_url}}/admin/drivers/{{userId}}/reject"
+          }
+        },
+        {
+          "name": "Suspend Driver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/drivers/{{userId}}/suspend"
+          }
+        },
+        {
+          "name": "Reactivate Driver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/drivers/{{userId}}/reactivate"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "ADMIN - Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/users"
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/users/{{id}}"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/users/{{id}}"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "ADMIN - Verification",
+      "item": [
+        {
+          "name": "List All Verification",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/verification"
+          }
+        },
+        {
+          "name": "Approve Verification",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/verification/{{userId}}/approve"
+          }
+        },
+        {
+          "name": "Reject Verification",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Dokumen blur\"\n}"
+            },
+            "url": "{{base_url}}/admin/verification/{{userId}}/reject"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "ADMIN - Roles",
+      "item": [
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/roles"
+          }
+        },
+        {
+          "name": "Get All Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/roles"
+          }
+        },
+        {
+          "name": "Get Role By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/roles/{{id}}"
+          }
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/roles/{{id}}"
+          }
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/roles/{{id}}"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "ADMIN - Jenis Kendaraan",
+      "item": [
+        {
+          "name": "Create Jenis Kendaraan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/jenis_kendaraan"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "ADMIN - Kendaraan",
+      "item": [
+        {
+          "name": "Get All Kendaraan",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/kendaraan"
+          }
+        },
+        {
+          "name": "Get Kendaraan By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/kendaraan/{{id}}"
+          }
+        },
+        {
+          "name": "Update Status Kendaraan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/kendaraan/{{id}}/status"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "ADMIN - App Config",
+      "item": [
+        {
+          "name": "Create Config",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/app-config"
+          }
+        },
+        {
+          "name": "Get Config By Key",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/app-config/{{key}}"
+          }
+        },
+        {
+          "name": "Update Config",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/app-config/{{key}}"
+          }
+        },
+        {
+          "name": "Delete Config",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/app-config/{{key}}"
+          }
+        }
+      ]
+    }
+  ]
+}

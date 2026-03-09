@@ -1,0 +1,146 @@
+{
+  "info": {
+    "name": "Taksol App - User Verification API",
+    "_postman_id": "verification-12345-67890",
+    "description": "Collection API untuk Taksol App - User Verification (KYC) Module",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Submit Verification",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"documentType\": \"KTP\",\n  \"documentPath\": \"/uploads/ktp.jpg\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/me/verification",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["me", "verification"]
+        },
+        "description": "Mengirim atau mengajukan ulang dokumen verifikasi identitas."
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "body": "{\n  \"userId\": 5,\n  \"status\": \"PENDING\",\n  \"submittedAt\": \"2026-02-12T14:00:00\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-12T14:10:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"Verification sudah dalam status APPROVED atau masih PENDING\",\n  \"path\": \"/me/verification\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get My Verification",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "url": {
+          "raw": "https://mock-server-url/me/verification",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["me", "verification"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"userId\": 5,\n  \"status\": \"PENDING\",\n  \"documentType\": \"KTP\",\n  \"documentPath\": \"/uploads/ktp.jpg\",\n  \"rejectedReason\": null,\n  \"verifiedAt\": null,\n  \"verifiedBy\": null,\n  \"createdAt\": \"2026-02-12T14:00:00\",\n  \"updatedAt\": \"2026-02-12T14:00:00\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Admin - List Verifications",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "url": {
+          "raw": "https://mock-server-url/admin/verifications?page=1&size=10",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["admin", "verifications"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "size", "value": "10" }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"content\": [\n    {\n      \"userId\": 5,\n      \"userName\": \"Budi\",\n      \"status\": \"PENDING\",\n      \"documentType\": \"KTP\",\n      \"createdAt\": \"2026-02-12T14:00:00\"\n    }\n  ],\n  \"page\": 1,\n  \"size\": 10,\n  \"totalElements\": 5,\n  \"totalPages\": 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "Admin - Approve Verification",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "url": {
+          "raw": "https://mock-server-url/admin/verifications/5/approve",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["admin", "verifications", "5", "approve"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"message\": \"Verification approved\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Admin - Reject Verification",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Dokumen tidak jelas\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/admin/verifications/5/reject",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["admin", "verifications", "5", "reject"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"message\": \"Verification rejected\"\n}"
+        }
+      ]
+    }
+  ]
+}

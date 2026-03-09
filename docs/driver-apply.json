@@ -1,0 +1,73 @@
+{
+  "info": {
+    "name": "Driver Apply API",
+    "_postman_id": "98765-driver-apply-12345",
+    "description": "Collection API untuk apply driver (Customer -> Driver PENDING)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Apply Driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <jwt_token>" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"licenseNumber\": \"SIM12345678\",\n  \"experienceYears\": 3\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/users/drivers/apply",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["users", "drivers", "apply"]
+        },
+        "description": "Customer mengajukan diri sebagai driver (status PENDING)"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"message\": \"Pengajuan driver berhasil. Menunggu persetujuan admin\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-16T11:00:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Data tidak lengkap atau format salah\",\n  \"path\": \"/users/drivers/apply\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-16T11:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token tidak valid atau expired\",\n  \"path\": \"/users/drivers/apply\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-16T11:00:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"Hanya CUSTOMER yang dapat mengajukan driver\",\n  \"path\": \"/users/drivers/apply\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-16T11:00:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"User sudah pernah mengajukan atau sudah menjadi driver\",\n  \"path\": \"/users/drivers/apply\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-16T11:00:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Terjadi kesalahan pada server\",\n  \"path\": \"/users/drivers/apply\"\n}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "info": {
+    "name": "App Users API - Roles & UserRoles",
+    "_postman_id": "roles-67890-12345",
+    "description": "Collection API untuk Roles dan UserRoles",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Roles",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "Authorization", "value": "Bearer <jwt_token>"},
+          {"key": "Accept", "value": "application/json"}
+        ],
+        "url": {
+          "raw": "https://mock-server-url/roles",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["roles"]
+        },
+        "description": "Mengambil daftar seluruh role yang tersedia di sistem"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "[\n  { \"id\": 1, \"role\": \"ADMIN\", \"parentId\": null },\n  { \"id\": 2, \"role\": \"CUSTOMER_BASIC\", \"parentId\": null },\n  { \"id\": 3, \"role\": \"CUSTOMER_SILVER\", \"parentId\": 2 }\n]"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-11T16:00:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Terjadi kesalahan pada server\",\n  \"path\": \"/roles\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Assign Role to User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer <jwt_token>"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Accept", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": 1,\n  \"roleId\": 2\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/user_roles",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["user_roles"]
+        },
+        "description": "Menambahkan role tertentu ke user"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "body": "{\n  \"userId\": 1,\n  \"roleId\": 2\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-11T16:05:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"User tidak ditemukan\",\n  \"path\": \"/user_roles\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-11T16:05:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"Role sudah terassign ke user tersebut\",\n  \"path\": \"/user_roles\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-11T16:05:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token invalid atau expired\",\n  \"path\": \"/user_roles\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-11T16:05:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"Bukan ADMIN\",\n  \"path\": \"/user_roles\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-11T16:05:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Database failure atau server error\",\n  \"path\": \"/user_roles\"\n}"
+        }
+      ]
+    }
+  ]
+}

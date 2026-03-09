@@ -1,0 +1,118 @@
+{
+  "info": {
+    "name": "Admin Driver Management - Full",
+    "_postman_id": "admin-driver-full-2026",
+    "description": "Approve, Reject, Suspend, Reactivate Driver",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+
+    {
+      "name": "Get Pending Drivers",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <admin_token>" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/admin/drivers/pending",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["admin", "drivers", "pending"]
+        }
+      }
+    },
+
+    {
+      "name": "Get All Drivers",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <admin_token>" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/admin/drivers",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["admin", "drivers"]
+        }
+      }
+    },
+
+    {
+      "name": "Approve Driver",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <admin_token>" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/admin/drivers/5/approve",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["admin", "drivers", "5", "approve"]
+        }
+      }
+    },
+
+    {
+      "name": "Reject Driver",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <admin_token>" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Dokumen tidak valid\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/admin/drivers/5/reject",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["admin", "drivers", "5", "reject"]
+        }
+      }
+    },
+
+    {
+      "name": "Suspend Driver",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <admin_token>" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/admin/drivers/5/suspend",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["admin", "drivers", "5", "suspend"]
+        }
+      }
+    },
+
+    {
+      "name": "Reactivate Driver",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <admin_token>" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/admin/drivers/5/reactivate",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["admin", "drivers", "5", "reactivate"]
+        }
+      }
+    }
+
+  ]
+}

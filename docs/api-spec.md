@@ -2168,3 +2168,7 @@ Error Handling Summary:
   Database error
   Query gagal
   Unexpected server failure
+
+
+
+<!-- Referensi lengkap request/response/error handling: API-Spec Taksol -->

@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTW - Food Delivery</title>
+
+    <link rel="icon" href="/static/logo1.png" type="image/png" />
+
+    <meta
+      name="description"
+      content="Fast. Fresh. Delivered to your door. Discover local flavors & top picks near you. 📍 Available in Dili, Timor-Leste only."
+    />
+    <meta name="author" content="QuickTime Unipesoal LDA" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://otw-tl.com/" />
+    <meta
+      property="og:title"
+      content="OTW - Discover local flavors & top picks near you"
+    />
+    <meta
+      property="og:description"
+      content="Fast. Fresh. Delivered to your door. Discover local flavors & top picks near you. 📍 Available in Dili, Timor-Leste only."
+    />
+    <meta property="og:image" content="/static/logo1.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://otw-tl.com/" />
+    <meta name="twitter:title" content="OTW - Food Delivery" />
+    <meta
+      name="twitter:description"
+      content="Fast. Fresh. Delivered to your door. Discover local flavors & top picks near you. 📍 Available in Dili, Timor-Leste only."
+    />
+    <meta name="twitter:image" content="/static/logo1.png" />
+
+    <meta
+      http-equiv="Cache-Control"
+      content="max-age=31536000, must-revalidate"
+    />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik+Bubbles&family=Rubik+Mono+One&family=Press+Start+2P&family=Bungee+Shade&family=Monoton&family=Luckiest+Guy&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+
+  <style>
+    @keyframes bounce {
+      0% {
+        transform: scale(1);
+      }
+      30% {
+        transform: scale(1.2);
+      }
+      50% {
+        transform: scale(0.95);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    .bounce-animation {
+      animation: bounce 0.5s ease;
+    }
+
+    :root {
+      --bg-end: #ffffff;
+      --text-primary: #1d1d1f;
+      --accent-color: #0066cc;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+    }
+
+    body {
+      background: linear-gradient(135deg, rgb(19 19 19 / 25%), var(--bg-end));
+      color: var(--text-primary);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+        sans-serif;
+      min-height: 100vh;
+    }
+
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background-color: #006eda;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+
+    #loading-screen img:last-child {
+      mask-image:
+        linear-gradient(
+          to left,
+          transparent 0%,
+          black 15%,
+          black 85%,
+          transparent 100%
+        ),
+        linear-gradient(
+          to bottom,
+          transparent 0%,
+          black 20%,
+          black 80%,
+          transparent 100%
+        );
+      -webkit-mask-image:
+        linear-gradient(
+          to left,
+          transparent 0%,
+          black 15%,
+          black 85%,
+          transparent 100%
+        ),
+        linear-gradient(
+          to bottom,
+          transparent 0%,
+          black 20%,
+          black 80%,
+          transparent 100%
+        );
+      mask-composite: intersect;
+      -webkit-mask-composite: destination-in;
+    }
+
+    .container {
+      max-width: 800px;
+      padding-top: 20px;
+      padding-bottom: 80px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .feature-icon-card {
+      font-size: 6rem;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+      transition: transform 0.3s ease;
+    }
+    .feature-icon-card:hover {
+      transform: scale(1.1);
+    }
+
+    /* Perubahan untuk ukuran ikon kecil */
+    .feature-icon-card-small {
+      font-size: 2.5rem;
+      color: var(--accent-color);
+      margin-bottom: 0.3rem;
+      transition: transform 0.3s ease;
+    }
+    .feature-icon-card-small:hover {
+      transform: scale(1.1);
+    }
+
+    /* Perubahan untuk background gradasi kartu */
+    .card-gradient-blue-white {
+      background: linear-gradient(45deg, #e0f2ff, #ffffff);
+      transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+    }
+
+    .card-gradient-blue-white:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 102, 204, 0.2);
+    }
+
+    /* Gaya untuk Footer */
+    .app-footer {
+      background-color: #1a1a1a;
+      color: #f0f0f0;
+      padding: 2rem 1rem;
+      text-align: center;
+      position: relative;
+      z-index: 1000;
+    }
+    .app-footer .social-icons a {
+      color: #f0f0f0;
+      margin: 0 10px;
+      font-size: 1.5rem;
+      transition: color 0.3s ease;
+    }
+    .app-footer .social-icons a:hover {
+      color: #0066cc;
+    }
+    .app-footer p,
+    .app-footer a {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: #f0f0f0;
+      text-decoration: none;
+    }
+    .app-footer a:hover {
+      text-decoration: underline;
+    }
+    .disabled-link {
+      cursor: not-allowed;
+    }
+    .disabled-link .card {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    /* New Styles for Statistics */
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    /* Popular items carousel */
+    .popular-item {
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+    .popular-item:hover {
+      transform: scale(1.05);
+    }
+    .popular-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--success-color);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    /* Promo banner */
+    .promo-banner {
+      background: linear-gradient(45deg, #1b0186, #ee5a24);
+      color: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.02);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* New promo banner small */
+    .promo-banner-small {
+      background: linear-gradient(45deg, #1b0186, #ee5a24);
+      color: white;
+      border-radius: 10px;
+      padding: 10px 15px;
+      margin: 10px 0;
+      text-align: center;
+      animation: pulse 2s infinite;
+    }
+
+    .promo-banner-small h6 {
+      font-size: 0.9rem;
+    }
+
+    /* Weather widget */
+    .weather-widget {
+      background: linear-gradient(135deg, #74b9ff, #0984e3);
+      color: white;
+      border-radius: 15px;
+      padding: 15px;
+      text-align: center;
+    }
+  </style>
+
+  <body>
+    <div id="loading-screen">
+      <img src="/static/logo2.png" style="width: 150px" alt="Logo" />
+      <img src="/static/bglos.jpg" style="width: 150px" alt="Loading..." />
+    </div>
+
+    <div
+      class="container mb-5"
+      id="main-content"
+      style="background-color: #efefef; border-radius: 10px"
+    >
+      <div
+        class="mb-4 px-3 py-5 rounded-4 shadow-sm border position-relative"
+        style="
+          background: url(&quot;/static/bglos.jpg&quot;) center center / cover
+            no-repeat;
+          border: 1px solid #dee2e6;
+          overflow: hidden;
+        "
+      >
+        <div
+          style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+          "
+        ></div>
+
+        <div
+          class="position-absolute top-50 end-0 translate-middle-y z-3"
+          style="
+            padding: 0.5rem 0.3rem;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            margin-right: 0.4rem;
+            backdrop-filter: blur(6px);
+          "
+        >
+          <a
+            href="https://www.facebook.com/share/18t8iuajTk/?mibextid=wwXIfr"
+            target="_blank"
+            class="text-decoration-none"
+            title="Facebook"
+          >
+            <i class="bi bi-facebook fs-5" style="color: #1877f2"></i>
+          </a>
+        </div>
+
+        <div
+          class="position-relative z-2 container-fluid px-0"
+          style="padding-right: 3.3rem !important"
+        >
+          <div class="row align-items-center text-center text-md-start g-4">
+            <div class="col-md-auto">
+              <img
+                src="/static/logo2.png"
+                width="90"
+                alt="Logo"
+                class="img-fluid shadow"
+                style="
+                  border-radius: 50%;
+                  border: 2px solid #fff;
+                  object-fit: cover;
+                "
+              />
+            </div>
+
+            <div class="col">
+              <div class="text-white">
+                <h4 class="fw-bold mb-1" style="font-size: 1.1rem">
+                  Hello, OTW Pass User!
+                </h4>
+                <p class="mb-2" style="font-size: 0.9rem">
+                  Your all-in-one app for life in Dili. <br />
+                  Quickly access food delivery and mobile top-ups with a single
+                  tap.
+                </p>
+                <p class="mb-0" style="font-size: 0.8rem">
+                  📍 Only available in Dili, Timor-Leste.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="promo-banner-small">
+        <div class="row align-items-center g-2">
+          <div class="col-auto">
+            <i class="bi bi-bullhorn-fill fs-5" style="color: #ff5722"></i>
+          </div>
+          <div class="col text-start">
+            <h6 class="fw-bold mb-0">
+              <i class="bi bi-megaphone me-2"></i>
+              <strong>Your Business Deserves to Shine!</strong>
+            </h6>
+            <p class="mb-0 small">
+              Reach more customers and boost your sales by advertising with us
+              today.
+            </p>
+          </div>
+          <div class="col-auto">
+            <a
+              href="https://wa.me/67078279129"
+              class="btn btn-dark rounded-pill btn-sm"
+            >
+              Get Started <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="container-fluid px-3 py-4">
+        <div class="row row-cols-2 row-cols-md-4 g-2 justify-content-center">
+          <div class="col text-center">
+            <a href="/foods/" class="text-decoration-none d-block">
+              <div
+                class="card border-0 rounded-4 overflow-hidden h-100 shadow-lg card-gradient-blue-white"
+              >
+                <div
+                  class="card-body p-2 d-flex flex-column align-items-center justify-content-center"
+                >
+                  <i class="bi bi-basket-fill feature-icon-card-small"></i>
+                  <h6
+                    class="fw-bold mb-0 text-center"
+                    style="font-size: 0.8rem"
+                  >
+                    OTW Foods
+                  </h6>
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <div class="col text-center">
+            <a
+              href="/pulsa/loja/8b6fde53cefa13039e0d759580564765e772a2f18615a1a9c5412539e19d2981-MQ==/"
+              class="text-decoration-none d-block"
+            >
+              <div
+                class="card border-0 rounded-4 overflow-hidden h-100 shadow-lg card-gradient-blue-white"
+              >
+                <div
+                  class="card-body p-2 d-flex flex-column align-items-center justify-content-center"
+                >
+                  <i class="bi bi-phone-fill feature-icon-card-small"></i>
+                  <h6
+                    class="fw-bold mb-0 text-center"
+                    style="font-size: 0.8rem"
+                  >
+                    OTW Pulsa
+                  </h6>
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <div class="col text-center">
+            <a
+              href="otw-taksol.html"
+              class="text-decoration-none d-block"
+            >
+              <div
+                class="card border-0 rounded-4 overflow-hidden h-100 shadow-lg position-relative"
+                style="background: linear-gradient(45deg, #f0f0f0, #ffffff)"
+              >
+                <div
+                  class="card-body p-2 d-flex flex-column align-items-center justify-content-center"
+                >
+                  <i
+                    class="bi bi-taxi-front-fill feature-icon-card-small"
+                    style="color: #0d6efd"
+                  ></i>
+
+                  <h6
+                    class="fw-bold mb-0 text-muted text-center"
+                    style="font-size: 0.8rem"
+                  >
+                    Taksol(Taksi Online)
+                  </h6>
+                  <span
+                    class="badge bg-secondary position-absolute top-0 end-0 mt-2 me-2"
+                    style="font-size: 0.6rem"
+                    >Soon</span
+                  >
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <div class="col text-center">
+            <a
+              href="#"
+              onclick="
+                alert('Daily Essentials coming soon!');
+                return false;
+              "
+              class="text-decoration-none d-block"
+            >
+              <div
+                class="card border-0 rounded-4 overflow-hidden h-100 shadow-lg position-relative"
+                style="background: linear-gradient(45deg, #f0f0f0, #ffffff)"
+              >
+                <div
+                  class="card-body p-2 d-flex flex-column align-items-center justify-content-center"
+                >
+                  <i
+                    class="bi bi-question-circle feature-icon-card-small"
+                    style="color: #6c757d"
+                  ></i>
+                  <h6
+                    class="fw-bold mb-0 text-muted text-center"
+                    style="font-size: 0.8rem"
+                  >
+                    Daily Essentials
+                  </h6>
+                  <span
+                    class="badge bg-secondary position-absolute top-0 end-0 mt-2 me-2"
+                    style="font-size: 0.6rem"
+                    >Soon</span
+                  >
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <h3 class="fw-bold mb-4 text-center">Popular Restaurants</h3>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100">
+              <img
+                src="https://xxxminio-api.arquivotl.com/otwstorage/restorante/Ademeki.jpg"
+                class="card-img-top"
+                alt="Ademeki"
+                style="height: 120px; object-fit: cover"
+              />
+
+              <div class="card-body">
+                <h6 class="card-title fw-bold mb-1">Ademeki</h6>
+                <p class="card-text small text-muted mb-2">Bar Café</p>
+                <!-- <div class="d-flex align-items-center">
+                
+                  
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                  
+                
+              </div> -->
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100">
+              <img
+                src="https://xxxminio-api.arquivotl.com/otwstorage/restorante/Burger_King.jpg"
+                class="card-img-top"
+                alt="Burger King"
+                style="height: 120px; object-fit: cover"
+              />
+
+              <div class="card-body">
+                <h6 class="card-title fw-bold mb-1">Burger King</h6>
+                <p class="card-text small text-muted mb-2">
+                  Premium Restaurant
+                </p>
+                <!-- <div class="d-flex align-items-center">
+                
+                  
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                  
+                
+              </div> -->
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100">
+              <img
+                src="https://xxxminio-api.arquivotl.com/otwstorage/restorante/Foto_Perfil_ALFA_DILI.jpg"
+                class="card-img-top"
+                alt="Lalapan Alfa Dili"
+                style="height: 120px; object-fit: cover"
+              />
+
+              <div class="card-body">
+                <h6 class="card-title fw-bold mb-1">Lalapan Alfa Dili</h6>
+                <p class="card-text small text-muted mb-2">
+                  Standart Restaurant
+                </p>
+                <!-- <div class="d-flex align-items-center">
+                
+                  
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                  
+                
+              </div> -->
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100">
+              <img
+                src="https://xxxminio-api.arquivotl.com/otwstorage/restorante/WONG_CILIK__FAROL.jpg"
+                class="card-img-top"
+                alt="Lalapan Wong Cilik"
+                style="height: 120px; object-fit: cover"
+              />
+
+              <div class="card-body">
+                <h6 class="card-title fw-bold mb-1">Lalapan Wong Cilik</h6>
+                <p class="card-text small text-muted mb-2">
+                  Standart Restaurant
+                </p>
+                <!-- <div class="d-flex align-items-center">
+                
+                  
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                      
+                        <i class="bi bi-star text-muted"></i>
+                      
+                    
+                  
+                
+              </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <br />
+        <div class="text-center mt-3">
+          <a href="/foods/" class="btn btn-outline-primary rounded-pill">
+            View All Restaurants <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+        </div>
+        <br />
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <div class="stat-number">98</div>
+            <div class="stat-label">Restaurants</div>
+            <i class="bi bi-shop fs-4 mt-2"></i>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div
+            class="stat-card"
+            style="background: linear-gradient(135deg, #fd79a8, #e84393)"
+          >
+            <div class="stat-number">6827+</div>
+            <div class="stat-label">Menu Items</div>
+            <i class="bi bi-egg-fried fs-4 mt-2"></i>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div
+            class="stat-card"
+            style="background: linear-gradient(135deg, #00b894, #00a085)"
+          >
+            <div class="stat-number">1054+</div>
+            <div class="stat-label">Orders This Month</div>
+            <i class="bi bi-check-circle fs-4 mt-2"></i>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div
+            class="stat-card"
+            style="background: linear-gradient(135deg, #fdcb6e, #f39c12)"
+          >
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Available</div>
+            <i class="bi bi-clock fs-4 mt-2"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.addEventListener("load", () => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const loader = document.getElementById("loading-screen");
+            const content = document.getElementById("main-content");
+            loader.style.opacity = "0";
+            content.style.opacity = "1";
+            setTimeout(() => loader.remove(), 500);
+          }, 100);
+        });
+      });
+
+      // Simple weather API call (placeholder)
+      function updateWeather() {
+        // This would be replaced with actual weather API call
+        console.log("Weather would update here");
+      }
+
+      // Initialize page
+      document.addEventListener("DOMContentLoaded", function () {
+        updateWeather();
+
+        // Add animation to stat cards
+        const statCards = document.querySelectorAll(".stat-card");
+        statCards.forEach((card, index) => {
+          setTimeout(() => {
+            card.classList.add("bounce-animation");
+          }, index * 200);
+        });
+      });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
+      integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
+      data-cf-beacon='{"version":"2024.11.0","token":"7c752fb05f0747d28f0dfea5f2e50807","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

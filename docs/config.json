@@ -1,0 +1,64 @@
+{
+  "info": {
+    "name": "Taksol App - App Config API",
+    "_postman_id": "app-config-12345-67890",
+    "description": "Collection API untuk Taksol App - App Configuration Module",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <access_token>" }
+        ],
+        "url": {
+          "raw": "https://mock-server-url/app-config/max_order_per_day",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["app-config", "max_order_per_day"]
+        },
+        "description": "Mengambil konfigurasi global sistem berdasarkan key."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"key\": \"max_order_per_day\",\n  \"value\": \"10\",\n  \"description\": \"Maksimal order per user per hari\",\n  \"createdAt\": \"2026-02-12T14:00:00\",\n  \"updatedAt\": \"2026-02-12T14:00:00\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-12T14:10:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Key kosong atau mengandung karakter tidak valid\",\n  \"path\": \"/app-config/max_order_per_day\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-12T14:10:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token tidak valid atau expired\",\n  \"path\": \"/app-config/max_order_per_day\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-12T14:10:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"User tidak memiliki akses untuk membaca config ini\",\n  \"path\": \"/app-config/max_order_per_day\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-12T14:10:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Config key 'max_order_per_day' not found\",\n  \"path\": \"/app-config/max_order_per_day\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-12T14:10:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Database error atau unexpected server failure\",\n  \"path\": \"/app-config/max_order_per_day\"\n}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "info": {
+    "name": "App Users API - Authentication",
+    "_postman_id": "auth-12345-67890",
+    "description": "Collection API untuk Authentication: Login, Refresh Token, Logout",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Accept", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"budi@example.com\",\n  \"password\": \"secret123\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/auth/login",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["auth", "login"]
+        },
+        "description": "Melakukan autentikasi user dan menghasilkan access token & refresh token"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"accessToken\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refreshToken\": \"def50200a4b3c...\",\n  \"tokenType\": \"Bearer\",\n  \"expiresIn\": 900,\n  \"refreshExpiresIn\": 604800\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Email atau password salah\",\n  \"path\": \"/auth/login\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Accept", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"def50200a4b3c...\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/auth/refresh",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["auth", "refresh"]
+        },
+        "description": "Menghasilkan access token baru menggunakan refresh token"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"accessToken\": \"new.jwt.token\",\n  \"refreshToken\": \"new.refresh.token\",\n  \"tokenType\": \"Bearer\",\n  \"expiresIn\": 900,\n  \"refreshExpiresIn\": 604800\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Refresh token tidak valid\",\n  \"path\": \"/auth/refresh\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Accept", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"def50200a4b3c...\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/auth/logout",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["auth", "logout"]
+        },
+        "description": "Mencabut refresh token sehingga tidak dapat digunakan kembali"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"message\": \"Logout berhasil\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-11T15:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Refresh token tidak valid\",\n  \"path\": \"/auth/logout\"\n}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "info": {
+    "name": "Taksol App - Orders & Payments API",
+    "_postman_id": "orders-payments-12345",
+    "description": "Collection API Taksol App dengan format error response standar dan rapi",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer <access_token>"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": 1,\n  \"jumlah\": 50000,\n  \"metode\": \"CASH\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/payments",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["payments"]
+        },
+        "description": "Membuat pembayaran untuk order yang sudah COMPLETED"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "body": "{\n  \"id\": 10,\n  \"orderId\": 1,\n  \"jumlah\": 50000,\n  \"metode\": \"CASH\",\n  \"status\": \"SUCCESS\",\n  \"waktuPembayaran\": \"2026-02-12T12:10:00\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:10:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Order belum selesai atau jumlah tidak sesuai\",\n  \"path\": \"/payments\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:10:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token tidak valid atau expired\",\n  \"path\": \"/payments\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:10:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"User tidak memiliki akses membuat payment\",\n  \"path\": \"/payments\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:10:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Order tidak ditemukan\",\n  \"path\": \"/payments\"\n}"
+        },
+        {
+          "name": "409 Conflict",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:10:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"Payment sudah ada atau saldo tidak cukup\",\n  \"path\": \"/payments\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:10:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Terjadi kesalahan pada server\",\n  \"path\": \"/payments\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Refund Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer <access_token>"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Driver tidak datang\"\n}"
+        },
+        "url": {
+          "raw": "https://mock-server-url/payments/10/refund",
+          "protocol": "https",
+          "host": ["mock-server-url"],
+          "path": ["payments","10","refund"]
+        },
+        "description": "Melakukan refund terhadap payment SUCCESS"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"paymentId\": 10,\n  \"originalAmount\": 50000,\n  \"refundedAmount\": 50000,\n  \"refundStatus\": \"FULL\",\n  \"message\": \"Refund berhasil diproses\"\n}"
+        },
+        {
+          "name": "400 Bad Request",
+          "status": "Bad Request",
+          "code": 400,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:15:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Jumlah refund melebihi sisa yang dapat direfund\",\n  \"path\": \"/payments/10/refund\"\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:15:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Token tidak valid atau expired\",\n  \"path\": \"/payments/10/refund\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:15:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"User tidak memiliki akses refund\",\n  \"path\": \"/payments/10/refund\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:15:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Payment tidak ditemukan\",\n  \"path\": \"/payments/10/refund\"\n}"
+        },
+        {
+          "name": "500 Internal Server Error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "body": "{\n  \"timestamp\": \"2026-02-12T12:15:00\",\n  \"status\": 500,\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Terjadi kesalahan pada server\",\n  \"path\": \"/payments/10/refund\"\n}"
+        }
+      ]
+    }
+  ]
+}

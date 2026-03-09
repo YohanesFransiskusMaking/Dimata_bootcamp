@@ -1,0 +1,163 @@
+{
+  "info": {
+    "name": "DRIVER",
+    "_postman_id": "driver-final-v1",
+    "description": "Driver Endpoints - Fully Synced With Quarkus Resource",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "driver_token", "value": "" }
+  ],
+  "item": [
+
+    {
+      "name": "DRIVER - Kendaraan Saya",
+      "item": [
+
+        {
+          "name": "Create Kendaraan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/kendaraan/vehicles",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jenisKendaraanId\": 1,\n  \"platNomor\": \"DK1234AA\",\n  \"warna\": \"Hitam\"\n}"
+            }
+          }
+        },
+
+        {
+          "name": "Get Kendaraan Saya",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" }
+            ],
+            "url": "{{base_url}}/kendaraan/me"
+          }
+        },
+
+        {
+          "name": "Update Kendaraan Saya",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/kendaraan/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platNomor\": \"DK5678BB\",\n  \"warna\": \"Merah\"\n}"
+            }
+          }
+        },
+
+        {
+          "name": "Update Status Kendaraan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/kendaraan/me/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            }
+          }
+        },
+
+        {
+          "name": "Delete Kendaraan Saya",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" }
+            ],
+            "url": "{{base_url}}/kendaraan/me"
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "DRIVER - Jenis Kendaraan",
+      "item": [
+        {
+          "name": "List Jenis Kendaraan",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" }
+            ],
+            "url": "{{base_url}}/jenis_kendaraan"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "DRIVER - Verification",
+      "item": [
+
+        {
+          "name": "Submit Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/me/verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"KTP\",\n  \"documentPath\": \"/uploads/ktp.jpg\"\n}"
+            }
+          }
+        },
+
+        {
+          "name": "Get My Verification",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" }
+            ],
+            "url": "{{base_url}}/me/verification"
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "DRIVER - Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driver_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 10,\n  \"rating\": 5,\n  \"comment\": \"Customer ramah\"\n}"
+            }
+          }
+        }
+      ]
+    }
+
+  ]
+}

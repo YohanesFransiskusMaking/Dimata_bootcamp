@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "CUSTOMER",
+    "_postman_id": "customer-final-v1",
+    "description": "Customer Endpoints - Synced With Quarkus Resource",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "customer_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Get My Orders",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+        ],
+        "url": "{{base_url}}/customer/orders"
+      }
+    },
+    {
+      "name": "Get Order Detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+        ],
+        "url": "{{base_url}}/customer/orders/{{id}}"
+      }
+    },
+    {
+      "name": "Cancel Order",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+        ],
+        "url": "{{base_url}}/customer/orders/{{id}}/cancel"
+      }
+    },
+    {
+      "name": "Get Customer Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{customer_token}}" }
+        ],
+        "url": "{{base_url}}/customer/profile"
+      }
+    }
+  ]
+}
